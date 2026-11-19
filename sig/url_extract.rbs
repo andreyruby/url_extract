@@ -1,0 +1,42 @@
+module UrlExtract
+  VERSION: String
+
+  TRIM: Array[String]
+
+  MAX_SIZE: Integer
+
+  DEFAULTS: Hash[Symbol, untyped]
+
+  def self.matches: (String text, **untyped options) -> Finder
+
+  def self.urls: (String text, **untyped options) -> Array[String]
+
+  class Finder
+    include Enumerable[Match]
+
+    def self.rules: (Hash[Symbol, untyped] options) -> untyped
+
+    def initialize: (String text, **untyped options) -> void
+
+    def each: () { (Match match) -> void } -> self
+            | () -> Enumerator[Match, self]
+  end
+
+  class Match
+    attr_reader url: String
+
+    attr_reader index: Integer
+
+    attr_reader text: String
+
+    def initialize: (String url, Integer index, String text) -> void
+
+    def range: () -> Range[Integer]
+
+    def ==: (untyped other) -> bool
+  end
+
+  class Normalizer
+    def self.call: (String raw_url) -> String
+  end
+end

@@ -1,0 +1,63 @@
+require:
+  - standard
+
+plugins:
+  - rubocop-performance
+  - rubocop-rspec
+  - rubocop-rake
+  - rubocop-on-rbs
+  - rubocop-thread_safety
+  - rubocop-packaging
+  - rubocop-md
+
+inherit_gem:
+  standard: config/base.yml
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - .github/**/*
+    - coverage/**/*
+    - doc/**/*
+    - pkg/**/*
+    - tmp/**/*
+    - vendor/bundle/**/*
+    - CHANGELOG.md # past entries hold code fragments
+
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+
+Layout/EmptyLineBetweenDefs:
+  DefLikeMacros: [let, let!, subject, subject!]
+  AllowAdjacentOneLineDefs: true
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/IndexedLet:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+RSpec/NestedGroups:
+  Enabled: false
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/VerifiedDoubles:
+  Enabled: false
+
+# The specs use the implicit subject
+RSpec/NamedSubject:
+  Enabled: false
+
+# The finder keeps the rules of each set of options in a frozen hash of the
+# class, and replaces the hash to add rules
+ThreadSafety/ClassInstanceVariable:
+  Enabled: false
