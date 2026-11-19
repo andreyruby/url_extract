@@ -70,7 +70,7 @@ RSpec.describe UrlExtract::Encodings do
     let(:text) { "https://a.com/\xFF".b }
 
     it "raises an error with the index of the first byte that is not ASCII" do
-      expect { matches(text) }.to raise_error ArgumentError,
+      expect { matches(text) }.to raise_error UrlExtract::EncodingError,
         "Invalid text: can not be read as UTF-8 (encoding ASCII-8BIT, index 14)\n[hint] Provide a valid UTF-8 string"
     end
   end
@@ -79,7 +79,7 @@ RSpec.describe UrlExtract::Encodings do
     let(:text) { "https://a.com/見".encode(Encoding::ISO_2022_JP) }
 
     it "raises an error" do
-      expect { matches(text) }.to raise_error ArgumentError,
+      expect { matches(text) }.to raise_error UrlExtract::EncodingError,
         "Invalid text: can not be read as UTF-8 (encoding ISO-2022-JP)\n[hint] Provide a valid UTF-8 string"
     end
   end
@@ -88,7 +88,7 @@ RSpec.describe UrlExtract::Encodings do
     let(:text) { "https://a.com/\xA4\xA1".dup.force_encoding(Encoding::EUC_TW) }
 
     it "raises an error" do
-      expect { matches(text) }.to raise_error ArgumentError, "Invalid text: can not be read as UTF-8 (encoding EUC-TW)\n[hint] Provide a valid UTF-8 string"
+      expect { matches(text) }.to raise_error UrlExtract::EncodingError, "Invalid text: can not be read as UTF-8 (encoding EUC-TW)\n[hint] Provide a valid UTF-8 string"
     end
   end
 
@@ -96,7 +96,7 @@ RSpec.describe UrlExtract::Encodings do
     let(:text) { "Я https://a.com/".encode(Encoding::Windows_1251) + "\x98".dup.force_encoding(Encoding::Windows_1251) }
 
     it "raises an error with the index of the character" do
-      expect { matches(text) }.to raise_error ArgumentError,
+      expect { matches(text) }.to raise_error UrlExtract::EncodingError,
         "Invalid text: can not be read as UTF-8 (encoding Windows-1251, index 16)\n[hint] Provide a valid UTF-8 string"
     end
   end

@@ -15,7 +15,8 @@
   character in half, and UTF-16 raised `Encoding::CompatibilityError`.
 - A string of bytes that are not ASCII, a dummy encoding such as ISO-2022-JP,
   and a non-ASCII string of `schemes` or `trim` in an encoding other than UTF-8
-  now raise `ArgumentError`.
+  now raise `UrlExtract::EncodingError`, an `ArgumentError`, and so does a text
+  with an invalid byte.
 - Remove the `ascii_only` option. A URL always takes the characters that are
   not ASCII; a text of ASCII characters only gets the shorter regexp by itself.
 

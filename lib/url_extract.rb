@@ -22,6 +22,11 @@ module UrlExtract
   # https://www.rfc-editor.org/rfc/rfc9110#section-4.1
   MAX_SIZE = 8000
 
+  # The error of a text, or of a string of the options, that the finder can not read as UTF-8:
+  # an invalid byte, a byte that is no character, or an encoding that the finder can not convert.
+  # It is an `ArgumentError`, as Ruby raises for an invalid byte. It is not Ruby's `::EncodingError`.
+  class EncodingError < ArgumentError; end
+
   # The default options of a finder. `Finder` describes each option.
   DEFAULTS = {
     schemes: %w[https:// http://].freeze,

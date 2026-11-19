@@ -52,8 +52,9 @@ module UrlExtract
   # The finder reads UTF-8. A text in another encoding, such as Windows-1251 or Shift_JIS, first loads
   # `url_extract/encodings`, which reads a UTF-8 copy of the text. A text of ASCII characters only needs no copy.
   #
-  # A text that is not a string raises `TypeError`. A text with an invalid byte, a text in an encoding
-  # that the finder can not read and a wrong option raise `ArgumentError`.
+  # A text that is not a string raises `TypeError`. A text with an invalid byte, or in an encoding
+  # that the finder can not read, raises `UrlExtract::EncodingError`, an `ArgumentError`.
+  # A wrong option raises `ArgumentError`.
   # The second line of the message is a hint of what to provide.
   class Finder
     include Enumerable
