@@ -49,7 +49,9 @@ module UrlExtract
   #
   # The matches are in their order in the text, and they do not overlap.
   # The time is linear in the length of the text.
-  # A text with an invalid byte raises `ArgumentError`.
+  # The text is in UTF-8, or holds ASCII characters only.
+  # A text that is not a string raises `TypeError`. A text with an invalid byte, a text in another encoding
+  # and a wrong option raise `ArgumentError`. The second line of the message is a hint of what to provide.
   class Finder
     include Enumerable
 
@@ -62,9 +64,7 @@ module UrlExtract
     # read it with no lock. Two threads that add rules at one time can build the same rules twice.
     def self.rules(options)
       @rules[options] || begin
-        unknown_options = options.keys - DEFAULTS.keys
-        raise ArgumentError, "unknown options: #{unknown_options.join(", ")}" if unknown_options.any?
-
+        Validate.options(options)
         rules = BuildRules.call(**DEFAULTS, **options)
         @rules = @rules.merge(options => rules).freeze
         rules
@@ -74,6 +74,7 @@ module UrlExtract
     # The finder reads a frozen copy of the text, so a change of the text during the scan
     # or after it does not change what a match holds. A frozen text needs no copy.
     def initialize(text, **options)
+      Validate.text(text)
       @text = text.frozen? ? text : text.dup.freeze
       @rules = self.class.rules(options)
     end

@@ -232,7 +232,7 @@ RSpec.describe UrlExtract::Finder do
     let(:options) { {ascii_only: true} }
 
     it "raises an error" do
-      expect { subject }.to raise_error ArgumentError, "unknown options: ascii_only"
+      expect { subject }.to raise_error ArgumentError, /\AUnknown option :ascii_only\n\[hint\] Allowed options: /
     end
   end
 
@@ -334,7 +334,7 @@ RSpec.describe UrlExtract::Finder do
       let(:options) { {trim: "."} }
 
       it "raises an error" do
-        expect { subject }.to raise_error ArgumentError, 'trim must be an array: "."'
+        expect { subject }.to raise_error ArgumentError, /\AInvalid value for trim: "\." provided\n\[hint\] /
       end
     end
   end
@@ -388,16 +388,33 @@ RSpec.describe UrlExtract::Finder do
       let(:options) { {trim_brackets: :all} }
 
       it "raises an error" do
-        expect { subject }.to raise_error ArgumentError, "unknown trim_brackets: :all"
+        expect { subject }.to raise_error ArgumentError, /\AInvalid value for trim_brackets: :all provided\n/
       end
+    end
+  end
+
+  context "with ASCII characters only, in another encoding" do
+    let(:text) { "See https://a.com/x.".b }
+
+    it "gives each URL in the encoding of the text" do
+      expect(subject.map(&:url)).to eq ["https://a.com/x".b]
+      expect(subject.first.url.encoding).to eq Encoding::BINARY
+    end
+  end
+
+  context "with another encoding" do
+    let(:text) { "See https://a.com/я.".encode(Encoding::Windows_1251) }
+
+    it "raises an error when the finder is made" do
+      expect { subject }.to raise_error ArgumentError, /\AInvalid text: encoding Windows-1251 is not supported\n/
     end
   end
 
   context "with an invalid byte" do
     let(:text) { "http://a.com/x \xFF" }
 
-    it "raises an error at the first read" do
-      expect { subject.first }.to raise_error ArgumentError, "invalid byte sequence in UTF-8"
+    it "raises an error when the finder is made" do
+      expect { subject }.to raise_error ArgumentError, /\AInvalid text: invalid byte for UTF-8 at index 15\n/
     end
   end
 
@@ -405,7 +422,7 @@ RSpec.describe UrlExtract::Finder do
     let(:options) { {format: :html, tags: %w[a]} }
 
     it "raises an error" do
-      expect { subject }.to raise_error ArgumentError, "unknown options: format, tags"
+      expect { subject }.to raise_error ArgumentError, /\AUnknown options :format, :tags\n/
     end
   end
 end
