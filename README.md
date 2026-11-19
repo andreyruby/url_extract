@@ -2,13 +2,11 @@
 
 Find and extract URLs from plain text:
 
-- trims what belongs to the text around a URL: `See https://a.com/x.`, `(https://a.com/x)`, `https://a.com/x&quot;`
-- keeps paired brackets: `https://en.wikipedia.org/wiki/Ruby_(programming_language)`
-- reads non-ASCII URLs, such as `https://ru.wikipedia.org/wiki/Привет`
-- optionally reads schemeless URLs (`www.example.com`)
-- gives the position of each URL, so the text can be rewritten
-- reads texts in other encodings, such as Windows-1251, Shift_JIS or UTF-16LE
-- linear time, no dependencies
+- Trims punctuation
+- Reads non-ASCII URLs, such as `https://ru.wikipedia.org/wiki/Привет`
+- Keeps only paired brackets
+- Gives the position of each URL
+- Linear time, no dependencies
 
 ## Usage
 
