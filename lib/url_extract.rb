@@ -51,6 +51,8 @@ require_relative "url_extract/version"
 #   or `&#x27;`. `false` keeps it. An entity is one unit: the `;` of the `trim` list does not cut its end.
 # - trim_brackets: `:unpaired` removes from the end of a URL a closing bracket that the URL
 #   does not open, and an opening bracket that the URL does not close. `:none` removes no bracket.
+# - on_encoding_error: what a text that the extractor can not read as UTF-8 does. It gives no match,
+#   and `:warn` warns at the line of the caller, `:skip` says nothing, and `:raise` raises the error instead.
 #
 # A URL holds the characters of RFC 3986, and each character that is not ASCII and not a space,
 # as the URL Standard of browsers does. The URL ends before the first other character.
@@ -60,10 +62,10 @@ require_relative "url_extract/version"
 # The extractor reads UTF-8. A text in another encoding, such as Windows-1251 or Shift_JIS, first loads
 # `url_extract/encodings`, which reads a UTF-8 copy of the text. A text of ASCII characters only needs no copy.
 #
-# A text that is not a string raises `TypeError`. A text with an invalid byte, or in an encoding
+# A wrong option raises `ArgumentError`, and a text that is not a string raises `TypeError`: they are bugs
+# of the calling code. With `on_encoding_error: :raise`, a text with an invalid byte, or in an encoding
 # that the extractor can not read, raises `UrlExtract::EncodingError`, an `ArgumentError`.
-# A wrong option raises `ArgumentError`.
-# The second line of the message is a hint of what to provide.
+# The second line of each message is a hint of what to provide.
 class UrlExtract
   include Enumerable
 
@@ -85,24 +87,25 @@ class UrlExtract
     max_size: MAX_SIZE,
     trim: TRIM,
     trim_html_entities: true,
-    trim_brackets: :unpaired
+    trim_brackets: :unpaired,
+    on_encoding_error: :warn
   }.freeze
+
+  # The start of the path of each file of the gem. A warning names the first line outside them: the caller's.
+  SOURCE_PATH = File.join(__dir__, "url_extract")
+  private_constant :SOURCE_PATH
 
   # Returns an extractor of the matches of the text: a `UrlExtract`. `UrlExtract` describes the options.
   def self.matches(text, **)
     new(text, **)
   end
 
-  # The extractor reads a frozen copy of the text, so a change of the text during the scan
-  # or after it does not change what a match holds. A frozen text needs no copy.
+  # A wrong option raises `ArgumentError`, and a text that is not a string raises `TypeError`.
+  # A text that the extractor can not read as UTF-8 gives no match: `on_encoding_error` says whether it also
+  # warns (`:warn`), says nothing (`:skip`), or raises (`:raise`).
   def initialize(text, **options)
-    Validate.text(text)
-    @text = text.frozen? ? text : text.dup.freeze
     @rules = BuildRules.cached(options)
-
-    # `url_extract/encodings` changes `scanned_text` and `each_url` of the class, for each extractor after it.
-    require_relative "url_extract/encodings" unless Validate.utf8?(@text)
-    @scanned_text = scanned_text(@text)
+    @text, @scanned_text = read(text)
   end
 
   # Gives each match to the block when the extractor finds it. With no block, returns an enumerator.
@@ -117,6 +120,34 @@ class UrlExtract
 
   private
 
+  # Returns the text and the text that the scan reads, or nil and nil for a text that the extractor can not read.
+  #
+  # The extractor reads a frozen copy of the text, so a change of the text during the scan
+  # or after it does not change what a match holds. A frozen text needs no copy.
+  # `url_extract/encodings` changes `scanned_text` and `each_url` of the class, for each extractor after it.
+  def read(text)
+    Validate.text(text)
+    text = text.frozen? ? text : text.dup.freeze
+    require_relative "url_extract/encodings" unless Validate.utf8?(text)
+    [text, scanned_text(text)]
+  rescue EncodingError => error
+    skip(error)
+  end
+
+  def skip(error)
+    case @rules.on_encoding_error
+    when :raise then raise error
+    when :warn
+      # The caller's line, in the form of Ruby's warnings. `uplevel:` counts no C frame, such as `Class#new`,
+      # so it can not take an index of `caller_locations`.
+      locations = caller_locations
+      caller = locations.find { |location| !location.path.start_with?(SOURCE_PATH) } || locations.last
+      warn("#{caller.path}:#{caller.lineno}: warning: url_extract: #{error.message}")
+    end
+
+    [nil, nil]
+  end
+
   # The text that the scan reads: the text itself, in UTF-8 or of ASCII characters only.
   def scanned_text(text)
     text
@@ -127,6 +158,8 @@ class UrlExtract
   # In another text, counting the characters between two URLs keeps the time linear.
   def each_url
     text = @scanned_text
+    return unless text
+
     ascii = text.ascii_only?
     character_index = 0
     byte_index = 0

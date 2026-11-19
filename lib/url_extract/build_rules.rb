@@ -3,7 +3,7 @@
 class UrlExtract
   # Builds the rules of an extractor from the options of `UrlExtract.new`.
   class BuildRules # :nodoc: all
-    Rules = Data.define(:start, :max_size, :trim)
+    Rules = Data.define(:start, :max_size, :trim, :on_encoding_error)
 
     @cache = {}.freeze
 
@@ -28,7 +28,7 @@ class UrlExtract
         max_size = options[:max_size] || Float::INFINITY
         trim = UrlExtract::Trim.new(**options.slice(:trim, :trim_html_entities, :trim_brackets))
 
-        Rules.new(start:, max_size:, trim:)
+        Rules.new(start:, max_size:, trim:, on_encoding_error: options[:on_encoding_error])
       end
 
       private

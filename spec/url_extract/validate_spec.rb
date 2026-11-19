@@ -67,7 +67,7 @@ RSpec.describe UrlExtract::Validate do
     end
 
     it "raises an error for an unknown option, with the allowed options" do
-      hint = "[hint] Allowed options: :schemes, :max_size, :trim, :trim_html_entities, :trim_brackets"
+      hint = "[hint] Allowed options: :schemes, :max_size, :trim, :trim_html_entities, :trim_brackets, :on_encoding_error"
 
       expect(error(scheme: %w[www.])).to eq "Unknown option :scheme\n#{hint}"
       expect(error(:format => :html, "tags" => [])).to eq "Unknown options :format, \"tags\"\n#{hint}"
@@ -143,6 +143,11 @@ RSpec.describe UrlExtract::Validate do
     it "raises an error for a trim_html_entities that is no boolean" do
       expect(error(trim_html_entities: "false"))
         .to eq "Invalid value for trim_html_entities: \"false\" provided\n[hint] Provide true or false"
+    end
+
+    it "raises an error for an unknown on_encoding_error" do
+      expect(error(on_encoding_error: :ignore))
+        .to eq "Invalid value for on_encoding_error: :ignore provided\n[hint] Provide :warn, :skip or :raise"
     end
 
     it "raises an error for an unknown trim_brackets" do

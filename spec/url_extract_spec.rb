@@ -410,11 +410,71 @@ RSpec.describe UrlExtract do
     end
   end
 
-  context "with an invalid byte" do
+  context "with the on_encoding_error option" do
     let(:text) { "http://a.com/x \xFF" }
+    let(:message) { "Invalid text: can not be read as UTF-8 (encoding UTF-8, index 15)\n[hint] Provide a valid UTF-8 string" }
 
-    it "raises an error when the extractor is made" do
-      expect { subject }.to raise_error UrlExtract::EncodingError, /\AInvalid text: can not be read as UTF-8 \(encoding UTF-8, index 15\)\n/
+    context "with :warn, the default" do
+      it "warns at the line of the caller, and gives no match" do
+        expect { expect(subject.to_a).to eq [] }.to output(
+          "#{__FILE__}:4: warning: url_extract: #{message}\n"
+        ).to_stderr
+      end
+
+      it "warns once, when the extractor is made" do
+        expect { subject }.to output(/warning/).to_stderr
+        expect { subject.to_a }.not_to output.to_stderr
+      end
+
+      it "says nothing when Ruby shows no warning" do
+        verbose = $VERBOSE
+        $VERBOSE = nil
+        expect { subject }.not_to output.to_stderr
+      ensure
+        $VERBOSE = verbose
+      end
+    end
+
+    context "with :skip" do
+      let(:options) { {on_encoding_error: :skip} }
+
+      it "gives no match, and says nothing" do
+        expect { expect(subject.to_a).to eq [] }.not_to output.to_stderr
+      end
+    end
+
+    context "with :raise" do
+      let(:options) { {on_encoding_error: :raise} }
+
+      it "raises an error when the extractor is made" do
+        expect { subject }.to raise_error UrlExtract::EncodingError, message
+      end
+    end
+
+    context "with :skip and a text that is no string" do
+      let(:options) { {on_encoding_error: :skip} }
+      let(:text) { nil }
+
+      it "raises a type error, and says nothing more" do
+        expect { expect { subject }.to raise_error TypeError, "Invalid text: nil provided\n[hint] Provide a string" }
+          .not_to output.to_stderr
+      end
+    end
+
+    context "with the default and a text that is no string" do
+      let(:text) { nil }
+
+      it "raises a type error" do
+        expect { subject }.to raise_error TypeError
+      end
+    end
+
+    context "with :skip and a wrong option" do
+      let(:options) { {on_encoding_error: :skip, trim: "."} }
+
+      it "raises the error of the option" do
+        expect { subject }.to raise_error ArgumentError, /\AInvalid value for trim: /
+      end
     end
   end
 

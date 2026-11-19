@@ -50,6 +50,7 @@ UrlExtract.matches(text).reverse_each { |match| text[match.range] = "<FILTERED>"
 | `trim` | `%w[? ! . , : ; * _ ~]` | The strings to remove from the end of a URL. |
 | `trim_html_entities` | `true` | Removes an HTML entity, such as `&quot;`, from the end of a URL. |
 | `trim_brackets` | `:unpaired` | Removes a bracket with no partner from the end of a URL. `:none` keeps it. |
+| `on_encoding_error` | `:warn` | A text not readable as UTF-8 gives no match, and warns. See [Errors](#errors). |
 
 ```ruby
 UrlExtract.matches("Go to www.example.com", schemes: %w[https:// http:// www.]).map(&:url)
@@ -77,27 +78,43 @@ that Ruby can not convert to UTF-8.
 
 ### Errors
 
-A wrong option, a text with an invalid byte or in an encoding that the extractor can not read raises `ArgumentError`;
-a text that is not a string raises `TypeError`. The second line of the message is a hint:
+A text that the extractor can not read as UTF-8, such as a text with an invalid byte, gives no match.
+By default it also warns, at the line of the caller; the second line of each message is a hint:
 
 ```ruby
+UrlExtract.matches("Привет https://a.com/\xFF").to_a
+# app.rb:12: warning: url_extract: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 21)
+# [hint] Provide a valid UTF-8 string
+# => []
+```
+
+`on_encoding_error: :skip` turns the warning off, as running Ruby with `-W0` does for each warning.
+`on_encoding_error: :raise` raises the error instead: `UrlExtract::EncodingError`, an `ArgumentError`,
+for each string that the extractor can not read as UTF-8, whatever the cause: an invalid byte,
+a byte that is no character, or an encoding that the extractor can not convert.
+The index points to the character at fault, when one character is at fault:
+
+```ruby
+UrlExtract.matches("Привет https://a.com/\xFF", on_encoding_error: :raise)
+# UrlExtract::EncodingError: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 21)
+# [hint] Provide a valid UTF-8 string
+```
+
+A text that is not a string, such as `nil`, and a wrong option are bugs of the calling code, so they raise,
+whatever `on_encoding_error` says:
+
+```ruby
+UrlExtract.matches(nil)
+# TypeError: Invalid text: nil provided
+# [hint] Provide a string
+
 UrlExtract.matches(text, scheme: %w[www.])
 # ArgumentError: Unknown option :scheme
-# [hint] Allowed options: :schemes, :max_size, :trim, :trim_html_entities, :trim_brackets
+# [hint] Allowed options: :schemes, :max_size, :trim, :trim_html_entities, :trim_brackets, :on_encoding_error
 
 UrlExtract.matches(text, trim: ".")
 # ArgumentError: Invalid value for trim: "." provided
 # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
-```
-
-Each string that the extractor can not read as UTF-8 raises `UrlExtract::EncodingError`, an `ArgumentError`,
-whatever the cause: an invalid byte, a byte that is no character, or an encoding that the extractor can not convert.
-The index points to the character at fault, when one character is at fault:
-
-```ruby
-UrlExtract.matches("Привет https://a.com/\xFF")
-# UrlExtract::EncodingError: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 21)
-# [hint] Provide a valid UTF-8 string
 ```
 
 ## Development
