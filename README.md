@@ -17,6 +17,10 @@ UrlExtract.matches("See https://a.com/x.").map(&:url)
 # => ["https://a.com/x"]
 ```
 
+`UrlExtract.matches` returns an enumerable of the matches, so each `Enumerable` method works:
+`each`, `map`, `first(3)`, `to_a`, `count`, `all?` and the others. It reads the text only as far as it needs:
+`first(3)` stops at the third URL.
+
 ```ruby
 UrlExtract.matches("See https://a.com/x.").each do |match|
   match.url   # => "https://a.com/x"
