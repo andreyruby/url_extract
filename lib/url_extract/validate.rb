@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module UrlExtract
-  # Checks the text and the options of `UrlExtract::Finder.new`. For a value that the finder can not take,
+  # Checks the text and the options of `UrlExtract::Extractor.new`. For a value that the extractor can not take,
   # it raises an error of two lines: what is wrong, and a short hint of what to provide.
   #
   #   UrlExtract.urls(text, trim: ".")
@@ -23,7 +23,7 @@ module UrlExtract
         unreadable("text", text, invalid_index(text)) unless text.valid_encoding?
       end
 
-      # The finder reads UTF-8. A text of ASCII characters only reads the same in each encoding
+      # The extractor reads UTF-8. A text of ASCII characters only reads the same in each encoding
       # that is compatible with ASCII, such as a string of bytes.
       def utf8?(string)
         encoding = string.encoding
@@ -37,8 +37,8 @@ module UrlExtract
         options.each { |name, value| send(name, value) }
       end
 
-      # Raises the error of each string that the finder can not read as UTF-8, whatever the cause:
-      # an invalid byte, a byte that is no character, or an encoding that the finder can not convert.
+      # Raises the error of each string that the extractor can not read as UTF-8, whatever the cause:
+      # an invalid byte, a byte that is no character, or an encoding that the extractor can not convert.
       # The index is the index of the character at fault, when one character is at fault.
       # `url_extract/encodings` raises its errors here too.
       def unreadable(label, string, index = nil)
@@ -109,7 +109,7 @@ module UrlExtract
           "Provide array of strings like #{DEFAULTS[name].inspect}")
       end
 
-      # The finder compares the bytes of the string with the bytes of a UTF-8 text.
+      # The extractor compares the bytes of the string with the bytes of a UTF-8 text.
       def check_string(label, string, example)
         unless string.is_a?(String) && !string.empty?
           fail_with("Invalid #{label}: #{show(string)} provided", "Provide a non-empty string like #{example}")

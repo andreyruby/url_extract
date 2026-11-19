@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe UrlExtract::Finder do
+RSpec.describe UrlExtract::Extractor do
   subject { described_class.new(text, **options) }
 
   let(:options) { {} }
@@ -58,7 +58,7 @@ RSpec.describe UrlExtract::Finder do
   describe "#each" do
     let(:yielded_urls) { [] }
 
-    it "gives each match to the block in the order of the text, and returns the finder" do
+    it "gives each match to the block in the order of the text, and returns the extractor" do
       expect(subject.each { |match| yielded_urls << match.url }).to be subject
       expect(yielded_urls).to eq %w[https://a.com/x http://b.com/y]
     end
@@ -91,13 +91,13 @@ RSpec.describe UrlExtract::Finder do
     end
   end
 
-  context "with a text that changes after the finder gets it" do
+  context "with a text that changes after the extractor gets it" do
     let(:text) { +"See http://a.com/x and http://b.com/y" }
 
-    it "gives each match one frozen copy of the text, as the finder got it" do
-      finder = subject
+    it "gives each match one frozen copy of the text, as the extractor got it" do
+      extractor = subject
       text.clear
-      matches = finder.to_a
+      matches = extractor.to_a
 
       expect(matches.map(&:text)).to all(eq("See http://a.com/x and http://b.com/y").and(be_frozen))
       expect(matches.first.text).to be matches.last.text
@@ -413,7 +413,7 @@ RSpec.describe UrlExtract::Finder do
   context "with an invalid byte" do
     let(:text) { "http://a.com/x \xFF" }
 
-    it "raises an error when the finder is made" do
+    it "raises an error when the extractor is made" do
       expect { subject }.to raise_error UrlExtract::EncodingError, /\AInvalid text: can not be read as UTF-8 \(encoding UTF-8, index 15\)\n/
     end
   end

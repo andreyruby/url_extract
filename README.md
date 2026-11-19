@@ -27,8 +27,8 @@ match.index # => 4
 match.range # => 4...19
 ```
 
-`UrlExtract.matches` returns a `UrlExtract::Finder`, which is enumerable and lazy:
-`finder.first(3)` reads the text only up to the third URL.
+`UrlExtract.matches` returns a `UrlExtract::Extractor`, which is enumerable and lazy:
+`extractor.first(3)` reads the text only up to the third URL.
 
 To replace URLs, go from the last match to the first:
 
@@ -56,8 +56,8 @@ A URL is returned as the text writes it. In HTML it can hold a character referen
 
 ### Encodings
 
-The finder reads UTF-8. A text in another encoding, such as Windows-1251, Shift_JIS or UTF-16LE,
-loads `url_extract/encodings`, which is not loaded by default. The finder then reads a UTF-8 copy of the text,
+The extractor reads UTF-8. A text in another encoding, such as Windows-1251, Shift_JIS or UTF-16LE,
+loads `url_extract/encodings`, which is not loaded by default. The extractor then reads a UTF-8 copy of the text,
 and gives each URL in the encoding of the text, with its index in the text:
 
 ```ruby
@@ -67,13 +67,13 @@ match.url.encoding # => #<Encoding:Windows-1251>
 match.index        # => 7
 ```
 
-A text of ASCII characters only needs no copy, in each encoding. The finder can not read
+A text of ASCII characters only needs no copy, in each encoding. The extractor can not read
 a string of bytes that are not ASCII, a dummy encoding such as ISO-2022-JP, or an encoding
 that Ruby can not convert to UTF-8.
 
 ### Errors
 
-A wrong option, a text with an invalid byte or in an encoding that the finder can not read raises `ArgumentError`;
+A wrong option, a text with an invalid byte or in an encoding that the extractor can not read raises `ArgumentError`;
 a text that is not a string raises `TypeError`. The second line of the message is a hint:
 
 ```ruby
@@ -86,8 +86,8 @@ UrlExtract.urls(text, trim: ".")
 # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
 ```
 
-Each string that the finder can not read as UTF-8 raises `UrlExtract::EncodingError`, an `ArgumentError`,
-whatever the cause: an invalid byte, a byte that is no character, or an encoding that the finder can not convert.
+Each string that the extractor can not read as UTF-8 raises `UrlExtract::EncodingError`, an `ArgumentError`,
+whatever the cause: an invalid byte, a byte that is no character, or an encoding that the extractor can not convert.
 The index points to the character at fault, when one character is at fault:
 
 ```ruby

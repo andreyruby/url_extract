@@ -2,9 +2,10 @@
 
 ## [Unreleased]
 
-- Check the text and each option when a finder is made, and raise an error that
+- Rename `UrlExtract::Finder` to `UrlExtract::Extractor`.
+- Check the text and each option when an extractor is made, and raise an error that
   says what is wrong, with a `[hint]` line of what to provide instead. A text with an
-  invalid byte now raises `ArgumentError` when the finder is made, not at its
+  invalid byte now raises `ArgumentError` when the extractor is made, not at its
   first read. A scheme with no `://` that is only letters, such as `https`, an
   empty string in `schemes` or `trim`, and a `max_size` that is not a positive
   integer now raise `ArgumentError`.

@@ -4,13 +4,13 @@ require_relative "../url_extract"
 
 module UrlExtract
   # Reads a text in an encoding other than UTF-8, such as Windows-1251, Shift_JIS, GB18030 or UTF-16LE.
-  # `UrlExtract::Finder` loads this file when it gets such a text, so a program that reads UTF-8 only
+  # `UrlExtract::Extractor` loads this file when it gets such a text, so a program that reads UTF-8 only
   # does not load it. `require "url_extract/encodings"` loads it ahead.
   #
-  # The finder reads a UTF-8 copy of the text, and gives each URL in the encoding of the text.
+  # The extractor reads a UTF-8 copy of the text, and gives each URL in the encoding of the text.
   # Ruby converts each character of such an encoding to one UTF-8 character, so the index of a URL in the copy
   # is its index in the text, and the range of a match replaces the URL in the text.
-  # The copy costs one conversion of the text for each finder, and its memory.
+  # The copy costs one conversion of the text for each extractor, and its memory.
   #
   # It can not read:
   # - a string of bytes (`ASCII-8BIT`) that are not ASCII: its bytes are no characters
@@ -37,9 +37,9 @@ module UrlExtract
       end
     end
 
-    # The methods of `UrlExtract::Finder` for a text in another encoding. A text in UTF-8 goes to the methods
+    # The methods of `UrlExtract::Extractor` for a text in another encoding. A text in UTF-8 goes to the methods
     # of the class.
-    module Finder
+    module Extractor
       private
 
       def scanned_text(text)
@@ -55,5 +55,5 @@ module UrlExtract
     end
   end
 
-  Finder.prepend(Encodings::Finder)
+  Extractor.prepend(Encodings::Extractor)
 end
