@@ -57,16 +57,49 @@ UrlExtract.matches(
 # => ["https://a.com/x"]
 ```
 
-- `:schemes` - defaults to `%w[https:// http://]`, what starts a URL. Use `%w[https:// http:// www.]` to find
-  URLs that start with `www.` too; `www.` and such start a URL only at the start of a word.
-- `:max_size` - defaults to `8000`, the largest URL in bytes: a longer URL gives no match. `nil` sets no limit.
-- `:trim` - defaults to `%w[? ! . , : ; * _ ~]`, the strings to remove from the end of a URL. `[]` removes nothing.
-- `:trim_html_entities` - defaults to `true`: removes an HTML entity, such as `&quot;`, from the end of a URL.
-  `false` keeps it.
-- `:trim_brackets` - defaults to `:unpaired`: removes a bracket with no partner from the end of a URL.
-  `:none` keeps each bracket.
-- `:on_encoding_error` - defaults to `:warn`: a text that can not be read as UTF-8 gives no match, and a warning.
-  `:skip` gives no warning, `:raise` raises `UrlExtract::EncodingError`.
+Each option, with examples:
+
+```ruby
+# :schemes - what starts a URL; www. and localhost: only at the start of a word
+text = "See www.a.com, localhost:3000/x and https://a.com/x"
+UrlExtract.matches(text).map(&:url)
+# => ["https://a.com/x"]
+
+UrlExtract.matches(text, schemes: %w[https:// http:// www. localhost:]).map(&:url)
+# => ["www.a.com", "localhost:3000/x", "https://a.com/x"]
+
+# :max_size - the largest URL, in bytes; a longer URL gives no match, and nil sets no limit
+UrlExtract.matches("https://a.com/x https://a.com/very/long/path", max_size: 20).map(&:url)
+# => ["https://a.com/x"]
+
+UrlExtract.matches("https://a.com/x https://a.com/very/long/path", max_size: nil).map(&:url)
+# => ["https://a.com/x", "https://a.com/very/long/path"]
+
+# :trim - the strings to remove from the end of a URL
+UrlExtract.matches("See https://a.com/x.", trim: []).map(&:url)
+# => ["https://a.com/x."]
+
+UrlExtract.matches("See https://a.com/x...", trim: %w[...]).map(&:url)
+# => ["https://a.com/x"]
+
+# :trim_html_entities - false keeps an HTML entity at the end of a URL
+UrlExtract.matches("&quot;https://a.com/x&quot;", trim_html_entities: false).map(&:url)
+# => ["https://a.com/x&quot;"]
+
+# :trim_brackets - :none keeps a bracket with no partner at the end of a URL
+UrlExtract.matches("(https://a.com/x)", trim_brackets: :none).map(&:url)
+# => ["https://a.com/x)"]
+
+# :on_encoding_error - a text not readable as UTF-8 gives no match; :warn also warns
+UrlExtract.matches("https://a.com/\xFF").to_a
+# => []
+
+UrlExtract.matches("https://a.com/\xFF", on_encoding_error: :skip).to_a
+# => []
+
+UrlExtract.matches("https://a.com/\xFF", on_encoding_error: :raise)
+# raises UrlExtract::EncodingError
+```
 
 ## Raised errors
 
@@ -108,6 +141,10 @@ UrlExtract.matches("https://ru.wikipedia.org/wiki/Привет!").map(&:url)
 UrlExtract.matches("https://a.com/x\u00A0y").map(&:url)
 # => ["https://a.com/x"]
 
+# An IP address or localhost as the host
+UrlExtract.matches("Open http://127.0.0.1:8080/x, http://[::1]:3000/ or http://localhost:3000.").map(&:url)
+# => ["http://127.0.0.1:8080/x", "http://[::1]:3000/", "http://localhost:3000"]
+
 # A scheme in capital letters
 UrlExtract.matches("HTTPS://A.COM/x").map(&:url)
 # => ["HTTPS://A.COM/x"]
@@ -127,10 +164,6 @@ UrlExtract.matches("https://a.com/x and https://a.com/x").map(&:url)
 # The first URLs only: reads the text up to the second
 UrlExtract.matches("https://a.com https://b.com https://c.com").first(2).map(&:url)
 # => ["https://a.com", "https://b.com"]
-
-# A URL longer than max_size: no match, and no match for a part of it
-UrlExtract.matches("https://a.com/x https://a.com/very/long/path", max_size: 20).map(&:url)
-# => ["https://a.com/x"]
 
 # A text in another encoding: the index in that text
 UrlExtract.matches("Привет https://a.com/путь.".encode(Encoding::Windows_1251)).first.index
