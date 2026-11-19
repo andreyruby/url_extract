@@ -49,6 +49,7 @@ require_relative "url_extract/match"
 require_relative "url_extract/paired_bracket_end"
 require_relative "url_extract/scan"
 require_relative "url_extract/trim"
+require_relative "url_extract/validate"
 require_relative "url_extract/finder"
 
 # Builds the rules of the default options when the file loads, so no finder waits for them.

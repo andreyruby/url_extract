@@ -13,12 +13,11 @@ module UrlExtract
   #
   # It works with byte indexes in the text, and reads the last byte of the URL first.
   # A string of one byte, an HTML entity and a bracket make no object.
+  # `UrlExtract::Validate` checks the options before.
   class Trim # :nodoc: all
     BRACKETS = {unpaired: "()[]{}", none: ""}.freeze
 
     def initialize(trim:, trim_html_entities:, trim_brackets:)
-      raise ArgumentError, "trim must be an array: #{trim.inspect}" unless trim.is_a?(Array)
-
       one_byte_strings, long_strings = trim.partition { |string| string.bytesize == 1 }
       @string_bytes = byte_table(one_byte_strings.map(&:ord))
       @bracket_bytes = byte_table(bracket_bytes(trim_brackets))
@@ -38,7 +37,7 @@ module UrlExtract
     private
 
     def bracket_bytes(brackets)
-      BRACKETS.fetch(brackets) { raise ArgumentError, "unknown trim_brackets: #{brackets.inspect}" }.bytes
+      BRACKETS.fetch(brackets).bytes
     end
 
     def byte_table(bytes)

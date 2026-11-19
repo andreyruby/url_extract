@@ -54,6 +54,22 @@ UrlExtract.urls("Go to www.example.com", schemes: %w[https:// http:// www.])
 
 A URL is returned as the text writes it. In HTML it can hold a character reference, such as `&amp;`.
 
+### Errors
+
+The text is in UTF-8, or holds ASCII characters only.
+A wrong option, a text in another encoding or with an invalid byte raises `ArgumentError`;
+a text that is not a string raises `TypeError`. The second line of the message is a hint:
+
+```ruby
+UrlExtract.urls(text, scheme: %w[www.])
+# ArgumentError: Unknown option :scheme
+# [hint] Allowed options: :schemes, :max_size, :trim, :trim_html_entities, :trim_brackets
+
+UrlExtract.urls(text, trim: ".")
+# ArgumentError: Invalid value for trim: "." provided
+# [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
+```
+
 ## Development
 
 Run `bin/setup` to install the dependencies, and `bundle exec rake` to run the specs and RuboCop.

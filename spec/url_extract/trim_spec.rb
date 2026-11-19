@@ -163,20 +163,4 @@ RSpec.describe UrlExtract::Trim do
       expect(subject).to eq url
     end
   end
-
-  context "with a list that is no array" do
-    let(:trim) { :gfm }
-
-    it "raises an error" do
-      expect { subject }.to raise_error ArgumentError, "trim must be an array: :gfm"
-    end
-  end
-
-  context "with an unknown trim of the brackets" do
-    let(:trim_brackets) { :all }
-
-    it "raises an error" do
-      expect { subject }.to raise_error ArgumentError, "unknown trim_brackets: :all"
-    end
-  end
 end
