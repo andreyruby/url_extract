@@ -51,11 +51,11 @@ RSpec.describe UrlExtract::Scan do
       expect(subject.map(&:first)).to eq %w[http://a.com/1 http://b.com/2 http://a.com/3 http://a.com/путь http://a.com/4]
     end
 
-    context "with ASCII characters only" do
-      let(:options) { {ascii_only: true, trim: []} }
+    context "with a text of ASCII characters only" do
+      let(:text) { %(http://a.com/1"http://b.com/2 http://a.com/3|x http://a.com/4<b>) }
 
-      it "ends the URL before a character that is not ASCII" do
-        expect(subject.map(&:first)).to eq %w[http://a.com/1 http://b.com/2 http://a.com/3 http://a.com/ http://a.com/4]
+      it "ends the URL before it" do
+        expect(subject.map(&:first)).to eq %w[http://a.com/1 http://b.com/2 http://a.com/3 http://a.com/4]
       end
     end
   end
@@ -134,5 +134,11 @@ RSpec.describe UrlExtract::Scan do
       expect(subject).to eq []
       expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at).to be < 1
     end
+  end
+
+  it "uses regexps of the characters that Ruby runs in linear time" do
+    regexps = [described_class::CHARACTERS, described_class::ASCII_CHARACTERS]
+
+    expect(regexps.map { |regexp| Regexp.linear_time?(regexp) }).to all(be true)
   end
 end

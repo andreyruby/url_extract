@@ -220,23 +220,19 @@ RSpec.describe UrlExtract::Finder do
     end
   end
 
-  context "with the ascii_only option" do
+  context "with characters that are not ASCII" do
     let(:text) { "http://a.com/путь?я=1 http://b.com/x\xC2\xA0y" }
 
-    context "with false, the default" do
-      let(:options) { {} }
-
-      it "takes a character that is not ASCII, and ends the URL before a space that is not ASCII" do
-        expect(subject.map(&:url)).to eq %w[http://a.com/путь?я=1 http://b.com/x]
-      end
+    it "takes a character that is not ASCII, and ends the URL before a space that is not ASCII" do
+      expect(subject.map(&:url)).to eq %w[http://a.com/путь?я=1 http://b.com/x]
     end
+  end
 
-    context "with true" do
-      let(:options) { {ascii_only: true} }
+  context "with the removed ascii_only option" do
+    let(:options) { {ascii_only: true} }
 
-      it "ends the URL before the first character that is not ASCII" do
-        expect(subject.map(&:url)).to eq %w[http://a.com/ http://b.com/x]
-      end
+    it "raises an error" do
+      expect { subject }.to raise_error ArgumentError, "unknown options: ascii_only"
     end
   end
 

@@ -27,7 +27,6 @@ unless ENV["CI"]
 end
 
 require "url_extract"
-require "url_extract/normalizer"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

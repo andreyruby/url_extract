@@ -32,6 +32,3 @@ gem "rubocop-on-rbs", "~> 2.2", require: false
 gem "mdl", "~> 0.13", require: false
 
 gem "debug", ">= 1.0"
-
-# For `UrlExtract::Normalizer`, which is optional
-gem "nokogiri", ">= 1.12"

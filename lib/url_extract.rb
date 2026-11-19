@@ -25,7 +25,6 @@ module UrlExtract
   # The default options of a finder. `Finder` describes each option.
   DEFAULTS = {
     schemes: %w[https:// http://].freeze,
-    ascii_only: false,
     max_size: MAX_SIZE,
     trim: TRIM,
     trim_html_entities: true,

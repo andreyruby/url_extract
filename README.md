@@ -1,10 +1,11 @@
 # UrlExtract
 
-Finds and extracts URLs and links from plain text. An alternative to `URI.extract`:
+Find and extract URLs from plain text:
 
 - trims what belongs to the text around a URL: `See https://a.com/x.`, `(https://a.com/x)`, `https://a.com/x&quot;`
 - keeps paired brackets: `https://en.wikipedia.org/wiki/Ruby_(programming_language)`
-- reads non-ASCII URLs, and optionally schemeless ones (`www.example.com`)
+- reads non-ASCII URLs, such as `https://ru.wikipedia.org/wiki/Привет`
+- optionally reads schemeless URLs (`www.example.com`)
 - gives the position of each URL, so the text can be rewritten
 - linear time, no dependencies
 
@@ -17,8 +18,6 @@ bundle add url_extract
 ## Usage
 
 ```ruby
-require "url_extract"
-
 UrlExtract.urls("See https://a.com/x. Or (http://b.com/y_(z))")
 # => ["https://a.com/x", "http://b.com/y_(z)"]
 
@@ -43,7 +42,6 @@ UrlExtract.matches(text).reverse_each { |match| text[match.range] = "<FILTERED>"
 | Option | Default | Meaning |
 |---|---|---|
 | `schemes` | `%w[https:// http://]` | What starts a URL. `www.` and such match only at the start of a word. |
-| `ascii_only` | `false` | `true` takes only the characters of RFC 3986. `false` also takes non-ASCII characters. |
 | `max_size` | `8000` | The largest size of a URL, in bytes. `nil` sets no limit. |
 | `trim` | `%w[? ! . , : ; * _ ~]` | The strings to remove from the end of a URL. |
 | `trim_html_entities` | `true` | Removes an HTML entity, such as `&quot;`, from the end of a URL. |
@@ -54,16 +52,7 @@ UrlExtract.urls("Go to www.example.com", schemes: %w[https:// http:// www.])
 # => ["www.example.com"]
 ```
 
-### Normalizer
-
-A URL is returned as the text writes it. `UrlExtract::Normalizer` gives the URL that a browser reads from it.
-It is optional and needs the `nokogiri` gem:
-
-```ruby
-require "url_extract/normalizer"
-
-UrlExtract::Normalizer.call("https://a.com/x?a=1&amp;b=2") # => "https://a.com/x?a=1&b=2"
-```
+A URL is returned as the text writes it. In HTML it can hold a character reference, such as `&amp;`.
 
 ## Development
 

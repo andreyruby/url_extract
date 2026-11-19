@@ -21,7 +21,6 @@ module UrlExtract
   #
   # A match has:
   # - url: the URL as the text writes it. In HTML it can hold a character reference, such as `&amp;`.
-  #   `UrlExtract::Normalizer` gives the URL that a browser reads from it.
   # - index: the index of the URL in the text, in characters.
   # - text: a frozen copy of the text, as it was when the finder read it.
   # - range: the place of the URL in the text. It replaces the URL:
@@ -37,9 +36,6 @@ module UrlExtract
   # The options:
   # - schemes: what starts a URL. A scheme with `://` starts a URL at each place.
   #   Another start, such as `www.`, starts a URL only at the start of a word, before a letter or a digit.
-  # - ascii_only: which characters a URL holds. `false` takes the characters of RFC 3986, and each
-  #   character that is not ASCII and not a space, as the URL Standard of browsers does.
-  #   `true` takes only the characters of RFC 3986. The URL ends before the first other character.
   # - max_size: the largest size of a URL, in bytes. The finder gives no match for a longer URL,
   #   and no match for a part of it. `nil` sets no limit.
   # - trim: the strings to remove from the end of a URL, as `See https://a.com/x.` needs. `[]` removes nothing.
@@ -47,6 +43,9 @@ module UrlExtract
   #   or `&#x27;`. `false` keeps it. An entity is one unit: the `;` of the `trim` list does not cut its end.
   # - trim_brackets: `:unpaired` removes from the end of a URL a closing bracket that the URL
   #   does not open, and an opening bracket that the URL does not close. `:none` removes no bracket.
+  #
+  # A URL holds the characters of RFC 3986, and each character that is not ASCII and not a space,
+  # as the URL Standard of browsers does. The URL ends before the first other character.
   #
   # The matches are in their order in the text, and they do not overlap.
   # The time is linear in the length of the text.

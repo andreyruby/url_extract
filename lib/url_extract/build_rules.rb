@@ -3,32 +3,16 @@
 module UrlExtract
   # Builds the rules of a finder from the options of `UrlExtract::Finder.new`.
   class BuildRules # :nodoc: all
-    Rules = Data.define(:start, :characters, :max_size, :trim)
-
-    # The characters that RFC 3986 allows in a URL, as the content of a regexp character class:
-    # - unreserved: letters, digits and `-._~` (https://www.rfc-editor.org/rfc/rfc3986#section-2.3)
-    # - reserved: `:/?#[]@` and `!$&'()*+,;=` (https://www.rfc-editor.org/rfc/rfc3986#section-2.2)
-    # - `%`, which starts a percent-encoded byte (https://www.rfc-editor.org/rfc/rfc3986#section-2.1)
-    # The whole grammar is in https://www.rfc-editor.org/rfc/rfc3986#appendix-A
-    RFC3986_CHARACTERS = "A-Za-z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%"
-
-    # The characters of a URL, by the `ascii_only` option.
-    # Without `ascii_only`, a URL also holds each character that is not ASCII and not a space.
-    # The URL Standard of browsers allows these: https://url.spec.whatwg.org/#url-code-points
-    CHARACTERS = {
-      true => /[#{RFC3986_CHARACTERS}]*/,
-      false => /(?:[#{RFC3986_CHARACTERS}]|[[^\x00-\x7F]&&[^[:space:]]])*/
-    }.freeze
+    Rules = Data.define(:start, :max_size, :trim)
 
     class << self
       # Each option is present.
       def call(**options)
         start = start(options[:schemes])
-        characters = CHARACTERS.fetch(options[:ascii_only] ? true : false)
         max_size = options[:max_size] || Float::INFINITY
         trim = UrlExtract::Trim.new(**options.slice(:trim, :trim_html_entities, :trim_brackets))
 
-        Rules.new(start:, characters:, max_size:, trim:)
+        Rules.new(start:, max_size:, trim:)
       end
 
       private

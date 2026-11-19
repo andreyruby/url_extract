@@ -35,8 +35,4 @@ module UrlExtract
 
     def ==: (untyped other) -> bool
   end
-
-  class Normalizer
-    def self.call: (String raw_url) -> String
-  end
 end
