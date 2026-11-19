@@ -14,8 +14,9 @@ Find and extract URLs from plain text:
 
 ```ruby
 # Each URL, as the text writes it, with repeats
-UrlExtract.matches("See https://a.com/x. Or (http://b.com/y_(z)), and https://a.com/x").map(&:url)
-# => ["https://a.com/x", "http://b.com/y_(z)", "https://a.com/x"]
+UrlExtract.matches("See https://a.com/x.").map(&:url)                 # => ["https://a.com/x"]
+UrlExtract.matches("Or (http://b.com/y_(z)), then").map(&:url)         # => ["http://b.com/y_(z)"]
+UrlExtract.matches("https://a.com/x and https://a.com/x").map(&:url)  # => ["https://a.com/x", "https://a.com/x"]
 
 # Each URL one time
 UrlExtract.matches("https://a.com/x, https://a.com/x").map(&:url).uniq
