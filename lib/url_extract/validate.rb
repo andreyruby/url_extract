@@ -11,6 +11,7 @@ class UrlExtract
   # A text that is not a string raises `TypeError`. Each other wrong value raises `ArgumentError`.
   class Validate # :nodoc: all
     TRIM_BRACKETS = %i[unpaired none].freeze
+    ON_ENCODING_ERROR = %i[warn skip raise].freeze
     # The longest part of a wrong value that an error shows. The value can be a long text, given by mistake.
     MAX_SHOWN_SIZE = 60
 
@@ -100,6 +101,12 @@ class UrlExtract
         return if TRIM_BRACKETS.include?(value)
 
         fail_with("Invalid value for trim_brackets: #{show(value)} provided", "Provide :unpaired or :none")
+      end
+
+      def on_encoding_error(value)
+        return if ON_ENCODING_ERROR.include?(value)
+
+        fail_with("Invalid value for on_encoding_error: #{show(value)} provided", "Provide :warn, :skip or :raise")
       end
 
       def check_array(name, value)
