@@ -19,14 +19,10 @@ UrlExtract.matches("See https://a.com/x.").map(&:url)
 
 ```ruby
 UrlExtract.matches("See https://a.com/x.").each do |match|
-  match.url
-  # => "https://a.com/x"
-
-  match.index
-  # => 4
-
-  match.range
-  # => 4...19
+  match.url   # => "https://a.com/x"
+  match.index # => 4
+  match.range # => 4...19
+  match.text  # => "See https://a.com/x."
 end
 ```
 
