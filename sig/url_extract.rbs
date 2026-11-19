@@ -1,4 +1,6 @@
-module UrlExtract
+class UrlExtract
+  include Enumerable[Match]
+
   VERSION: String
 
   TRIM: Array[String]
@@ -10,20 +12,14 @@ module UrlExtract
   class EncodingError < ArgumentError
   end
 
-  def self.matches: (String text, **untyped options) -> Extractor
+  def self.matches: (String text, **untyped options) -> UrlExtract
 
   def self.urls: (String text, **untyped options) -> Array[String]
 
-  class Extractor
-    include Enumerable[Match]
+  def initialize: (String text, **untyped options) -> void
 
-    def self.rules: (Hash[Symbol, untyped] options) -> untyped
-
-    def initialize: (String text, **untyped options) -> void
-
-    def each: () { (Match match) -> void } -> self
-            | () -> Enumerator[Match, self]
-  end
+  def each: () { (Match match) -> void } -> self
+          | () -> Enumerator[Match, self]
 
   class Match
     attr_reader url: String

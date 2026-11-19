@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module UrlExtract
+class UrlExtract
   # Returns the count of the bytes of the HTML entity that ends a URL, or 0 when no entity ends it.
   # The URL is the bytes of the text from `start` to `finish`.
   #

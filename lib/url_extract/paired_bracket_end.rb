@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module UrlExtract
+class UrlExtract
   # Returns the byte index after the last closing bracket of a URL that has a partner.
   # Returns `start` when no closing bracket has a partner.
   # The URL is the bytes of the text from `start` to `finish`.

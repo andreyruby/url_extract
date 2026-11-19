@@ -57,7 +57,7 @@ RSpec/VerifiedDoubles:
 RSpec/NamedSubject:
   Enabled: false
 
-# The extractor keeps the rules of each set of options in a frozen hash of the
+# BuildRules keeps the rules of each set of options in a frozen hash of the
 # class, and replaces the hash to add rules
 ThreadSafety/ClassInstanceVariable:
   Enabled: false

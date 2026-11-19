@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module UrlExtract
+class UrlExtract
   # Reads the text from its start to its end, and gives each URL to the block, with its byte index.
   #
   # The time is linear in the length of the text: the scan reads the characters after a start one time.

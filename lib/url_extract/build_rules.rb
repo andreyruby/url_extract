@@ -1,11 +1,27 @@
 # frozen_string_literal: true
 
-module UrlExtract
-  # Builds the rules of an extractor from the options of `UrlExtract::Extractor.new`.
+class UrlExtract
+  # Builds the rules of an extractor from the options of `UrlExtract.new`.
   class BuildRules # :nodoc: all
     Rules = Data.define(:start, :max_size, :trim)
 
+    @cache = {}.freeze
+
     class << self
+      # Returns the rules for the options. It builds the rules of each set of options one time,
+      # because the build compiles a regexp, and costs more than the scan of a short text.
+      #
+      # It keeps the rules in a frozen hash, and replaces the hash to add rules, so threads
+      # read it with no lock. Two threads that add rules at one time can build the same rules twice.
+      def cached(options)
+        @cache[options] || begin
+          UrlExtract::Validate.options(options)
+          rules = call(**DEFAULTS, **options)
+          @cache = @cache.merge(options => rules).freeze
+          rules
+        end
+      end
+
       # Each option is present.
       def call(**options)
         start = start(options[:schemes])

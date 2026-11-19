@@ -27,7 +27,8 @@ match.index # => 4
 match.range # => 4...19
 ```
 
-`UrlExtract.matches` returns a `UrlExtract::Extractor`, which is enumerable and lazy:
+`UrlExtract.matches` returns an extractor: a `UrlExtract`, which is enumerable and lazy.
+`UrlExtract.new(text, **options)` makes the same extractor.
 `extractor.first(3)` reads the text only up to the third URL.
 
 To replace URLs, go from the last match to the first:
