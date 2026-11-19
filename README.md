@@ -14,9 +14,12 @@ Find and extract URLs from plain text:
 
 ```ruby
 # Each URL, as the text writes it, with repeats
-UrlExtract.matches("See https://a.com/x.").map(&:url)                 # => ["https://a.com/x"]
-UrlExtract.matches("Or (http://b.com/y_(z)), then").map(&:url)         # => ["http://b.com/y_(z)"]
-UrlExtract.matches("https://a.com/x and https://a.com/x").map(&:url)  # => ["https://a.com/x", "https://a.com/x"]
+UrlExtract.matches("See https://a.com/x.").map(&:url)
+# => ["https://a.com/x"]
+UrlExtract.matches("Or (http://b.com/y_(z)), then").map(&:url)
+# => ["http://b.com/y_(z)"]
+UrlExtract.matches("https://a.com/x and https://a.com/x").map(&:url)
+# => ["https://a.com/x", "https://a.com/x"]
 
 # Brackets and non-ASCII characters
 UrlExtract.matches("See https://en.wikipedia.org/wiki/Ruby_(programming_language).").map(&:url)
@@ -26,9 +29,12 @@ UrlExtract.matches("Статья: https://ru.wikipedia.org/wiki/Привет!").
 
 # The place of a URL
 match = UrlExtract.matches("See https://a.com/x.").first
-match.url   # => "https://a.com/x"
-match.index # => 4
-match.range # => 4...19
+match.url
+# => "https://a.com/x"
+match.index
+# => 4
+match.range
+# => 4...19
 
 # Wrap each URL in a link, from the last to the first
 text = "See https://a.com/x and https://b.com/y."
@@ -49,10 +55,14 @@ UrlExtract.matches("Get ftp://a.com/f.zip or write to mailto:me@a.com.", schemes
 # => ["ftp://a.com/f.zip", "mailto:me@a.com"]
 
 # What the trim removes
-UrlExtract.matches("See https://a.com/x.", trim: []).map(&:url)                  # => ["https://a.com/x."]
-UrlExtract.matches("See https://a.com/x...", trim: %w[...]).map(&:url)          # => ["https://a.com/x"]
-UrlExtract.matches("(https://a.com/x)", trim_brackets: :none).map(&:url)         # => ["https://a.com/x)"]
-UrlExtract.matches("&quot;https://a.com/x&quot;", trim_html_entities: false).map(&:url) # => ["https://a.com/x&quot;"]
+UrlExtract.matches("See https://a.com/x.", trim: []).map(&:url)
+# => ["https://a.com/x."]
+UrlExtract.matches("See https://a.com/x...", trim: %w[...]).map(&:url)
+# => ["https://a.com/x"]
+UrlExtract.matches("(https://a.com/x)", trim_brackets: :none).map(&:url)
+# => ["https://a.com/x)"]
+UrlExtract.matches("&quot;https://a.com/x&quot;", trim_html_entities: false).map(&:url)
+# => ["https://a.com/x&quot;"]
 
 # The largest URL, in bytes
 UrlExtract.matches("https://a.com/x https://a.com/very/long/path", max_size: 20).map(&:url)
@@ -60,13 +70,18 @@ UrlExtract.matches("https://a.com/x https://a.com/very/long/path", max_size: 20)
 
 # A text in another encoding: each URL in that encoding, at its index in the text
 match = UrlExtract.matches("Привет https://a.com/путь.".encode(Encoding::Windows_1251)).first
-match.url.encoding # => #<Encoding:Windows-1251>
-match.index        # => 7
+match.url.encoding
+# => #<Encoding:Windows-1251>
+match.index
+# => 7
 
 # A text with an invalid byte: no match, and a warning with a hint
-UrlExtract.matches("https://a.com/\xFF").to_a                              # => [], and a warning
-UrlExtract.matches("https://a.com/\xFF", on_encoding_error: :skip).to_a   # => []
-UrlExtract.matches("https://a.com/\xFF", on_encoding_error: :raise)       # raises UrlExtract::EncodingError
+UrlExtract.matches("https://a.com/\xFF").to_a
+# => [], and a warning
+UrlExtract.matches("https://a.com/\xFF", on_encoding_error: :skip).to_a
+# => []
+UrlExtract.matches("https://a.com/\xFF", on_encoding_error: :raise)
+# raises UrlExtract::EncodingError
 ```
 
 ## Options
