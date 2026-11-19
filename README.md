@@ -30,10 +30,13 @@ match.url   # => "https://a.com/x"
 match.index # => 4
 match.range # => 4...19
 
-# Replace URLs, from the last to the first
-text = +"See https://a.com/x and https://b.com/y"
-UrlExtract.matches(text).reverse_each { |match| text[match.range] = "<FILTERED>" }
-text # => "See <FILTERED> and <FILTERED>"
+# Wrap each URL in a link, from the last to the first
+text = +"See https://a.com/x and https://b.com/y."
+UrlExtract.matches(text).reverse_each do |match|
+  text[match.range] = %(<a href="#{match.url}">#{match.url}</a>)
+end
+puts text
+# See <a href="https://a.com/x">https://a.com/x</a> and <a href="https://b.com/y">https://b.com/y</a>.
 
 # The first URLs only: reads the text up to the second
 UrlExtract.matches("https://a.com https://b.com https://c.com").first(2).map(&:url)
