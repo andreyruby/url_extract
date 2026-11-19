@@ -430,24 +430,22 @@ RSpec.describe UrlExtract do
     expect(UrlExtract::VERSION).not_to be_nil
   end
 
-  describe ".urls" do
-    let(:text) { "See https://a.com/x. Then www.b.com/y" }
-
-    it "returns the URLs of the text" do
-      expect(described_class.urls(text)).to eq ["https://a.com/x"]
-    end
-
-    it "takes the options of the extractor" do
-      expect(described_class.urls(text, schemes: %w[https:// www.])).to eq ["https://a.com/x", "www.b.com/y"]
-    end
-  end
-
   describe ".matches" do
-    let(:text) { "See https://a.com/x. Then www.b.com/y" }
+    let(:text) { "See https://a.com/x. Then www.b.com/y and https://a.com/x" }
 
     it "returns an extractor of the matches: a UrlExtract" do
       expect(described_class.matches(text)).to be_a(described_class)
-      expect(described_class.matches(text).to_a).to match [have_attributes(url: "https://a.com/x", index: 4)]
+      expect(described_class.matches(text).to_a).to match [
+        have_attributes(url: "https://a.com/x", index: 4), have_attributes(url: "https://a.com/x", index: 42)
+      ]
+    end
+
+    it "takes the options of the extractor" do
+      expect(described_class.matches(text, schemes: %w[www.]).map(&:url)).to eq ["www.b.com/y"]
+    end
+
+    it "gives the raw URLs: each URL at each place, as the text writes it" do
+      expect(described_class.matches(text).map(&:url)).to eq ["https://a.com/x", "https://a.com/x"]
     end
   end
 end
