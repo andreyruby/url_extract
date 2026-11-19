@@ -8,8 +8,8 @@ RSpec.describe UrlExtract do
 
   it "gives each URL with its index and its range" do
     expect(subject.to_a).to match [
-      have_attributes(url: "https://a.com/x", index: 4, range: 4...19),
-      have_attributes(url: "http://b.com/y", index: 23, range: 23...37)
+      have_attributes(url: "https://a.com/x", range: 4...19),
+      have_attributes(url: "http://b.com/y", range: 23...37)
     ]
   end
 
@@ -25,8 +25,8 @@ RSpec.describe UrlExtract do
 
     it "gives the index of each URL in characters" do
       expect(subject.to_a).to match [
-        have_attributes(url: "https://a.com/я", index: 8, range: 8...23),
-        have_attributes(url: "http://b.com/y", index: 26, range: 26...40)
+        have_attributes(url: "https://a.com/я", range: 8...23),
+        have_attributes(url: "http://b.com/y", range: 26...40)
       ]
     end
   end
@@ -129,7 +129,7 @@ RSpec.describe UrlExtract do
     let(:text) { "See (www.a.com/x), or http://b.com." }
 
     it "finds the URLs by the options" do
-      expect(subject.to_a).to match [have_attributes(url: "www.a.com/x)", index: 5)]
+      expect(subject.to_a).to match [have_attributes(url: "www.a.com/x)", range: 5...17)]
     end
 
     it "builds the rules of the options one time" do
@@ -235,8 +235,8 @@ RSpec.describe UrlExtract do
 
       it "gives the URL with its port, path, query and user" do
         expect(subject.to_a).to match [
-          have_attributes(url: "http://127.0.0.1:8080/x?y=1", index: 5),
-          have_attributes(url: "http://user:pass@10.0.0.1:22/path", index: 37)
+          have_attributes(url: "http://127.0.0.1:8080/x?y=1", range: 5...32),
+          have_attributes(url: "http://user:pass@10.0.0.1:22/path", range: 37...70)
         ]
       end
     end
@@ -452,7 +452,7 @@ RSpec.describe UrlExtract do
     let(:text) { "Я https://a.com/я.".encode(Encoding::Windows_1251) }
 
     it "gives each URL in the encoding of the text, with its index in the text" do
-      expect(subject.to_a).to match [have_attributes(url: "https://a.com/я".encode(Encoding::Windows_1251), index: 2)]
+      expect(subject.to_a).to match [have_attributes(url: "https://a.com/я".encode(Encoding::Windows_1251), range: 2...17)]
     end
   end
 
@@ -542,7 +542,7 @@ RSpec.describe UrlExtract do
     it "returns an extractor of the matches: a UrlExtract" do
       expect(described_class.matches(text)).to be_a(described_class)
       expect(described_class.matches(text).to_a).to match [
-        have_attributes(url: "https://a.com/x", index: 4), have_attributes(url: "https://a.com/x", index: 42)
+        have_attributes(url: "https://a.com/x", range: 4...19), have_attributes(url: "https://a.com/x", range: 42...57)
       ]
     end
 

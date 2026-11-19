@@ -3,21 +3,18 @@
 class UrlExtract
   # A URL that the extractor found in a text.
   class Match
-    # The URL as the text writes it, and its index in the text, in characters.
-    attr_reader :url, :index
+    # The URL as the text writes it.
+    attr_reader :url
+    # The place of the URL in the text, in characters. It replaces the URL: `text[match.range] = '<FILTERED>'`.
+    attr_reader :range
     # A frozen copy of the text, as it was when the extractor read it. The matches of one text share it.
     attr_reader :text
 
-    # The extractor makes each match.
+    # The extractor makes each match, from the index of the URL in the text.
     def initialize(url, index, text)
       @url = url
-      @index = index
+      @range = index...(index + url.length)
       @text = text
-    end
-
-    # Returns the place of the URL in the text. It replaces the URL: `text[match.range] = '<FILTERED>'`.
-    def range
-      index...(index + url.length)
     end
 
     # Two matches are equal when they are at the same place of the same text.

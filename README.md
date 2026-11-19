@@ -23,7 +23,6 @@ UrlExtract.matches("See https://a.com/x.").map(&:url)
 ```ruby
 UrlExtract.matches("See https://a.com/x.").each do |match|
   match.url   # => "https://a.com/x"
-  match.index # => 4
   match.range # => 4...19
   match.text  # => "See https://a.com/x."
 end
@@ -167,9 +166,9 @@ UrlExtract.matches("https://a.com/x and https://a.com/x").map(&:url)
 UrlExtract.matches("https://a.com https://b.com https://c.com").first(2).map(&:url)
 # => ["https://a.com", "https://b.com"]
 
-# A text in another encoding: the index in that text
-UrlExtract.matches("Привет https://a.com/путь.".encode(Encoding::Windows_1251)).first.index
-# => 7
+# A text in another encoding: the range in that text
+UrlExtract.matches("Привет https://a.com/путь.".encode(Encoding::Windows_1251)).first.range
+# => 7...25
 
 # A text with an invalid byte: no match, and a warning
 UrlExtract.matches("https://a.com/\xFF").to_a

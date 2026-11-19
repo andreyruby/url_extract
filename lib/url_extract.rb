@@ -13,7 +13,6 @@ require_relative "url_extract/version"
 #
 #   match = UrlExtract.matches("See https://a.com/x.").first
 #   match.url   # => "https://a.com/x"
-#   match.index # => 4
 #   match.range # => 4...19
 #
 # `UrlExtract.matches(text)` and `UrlExtract.new(text)` return an extractor: a `UrlExtract`, which is enumerable:
@@ -29,9 +28,8 @@ require_relative "url_extract/version"
 #
 # A match has:
 # - url: the URL as the text writes it. In HTML it can hold a character reference, such as `&amp;`.
-# - index: the index of the URL in the text, in characters.
 # - text: a frozen copy of the text, as it was when the extractor read it.
-# - range: the place of the URL in the text. It replaces the URL:
+# - range: the place of the URL in the text, in characters. It replaces the URL:
 #
 #     text[match.range] = '<FILTERED>'
 #
