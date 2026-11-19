@@ -12,29 +12,11 @@ RSpec.describe UrlExtract::Validate do
       end
     end
 
-    context "with ASCII characters only, in another encoding" do
-      let(:text) { "https://a.com".b }
+    context "with another encoding, for url_extract/encodings" do
+      let(:text) { "https://a.com/я".encode(Encoding::UTF_16LE) }
 
       it "takes it" do
         expect { subject }.not_to raise_error
-      end
-    end
-
-    context "with a string of bytes that are not ASCII" do
-      let(:text) { "https://a.com/\xFF".b }
-
-      it "raises an error with a hint" do
-        expect { subject }.to raise_error ArgumentError, "Invalid text: encoding ASCII-8BIT is not supported\n" \
-          "[hint] Mark it as UTF-8: text.dup.force_encoding(Encoding::UTF_8)"
-      end
-    end
-
-    context "with another encoding" do
-      let(:text) { "https://a.com/я".encode(Encoding::Windows_1251) }
-
-      it "raises an error with a hint" do
-        expect { subject }.to raise_error ArgumentError, "Invalid text: encoding Windows-1251 is not supported\n" \
-          "[hint] Encode it to UTF-8: text.encode(Encoding::UTF_8)"
       end
     end
 
@@ -51,16 +33,15 @@ RSpec.describe UrlExtract::Validate do
 
       it "raises an error that gives the index in characters, with a hint" do
         expect { subject }.to raise_error ArgumentError,
-          "Invalid text: invalid byte for UTF-8 at index 16\n[hint] Replace invalid bytes with text.scrub"
+          "Invalid text: can not be read as UTF-8 (encoding UTF-8, index 16)\n[hint] Provide a valid UTF-8 string"
       end
     end
 
-    context "with an encoding that is not compatible with ASCII" do
-      let(:text) { "https://a.com".encode(Encoding::UTF_16LE) }
+    context "with an invalid byte in another encoding" do
+      let(:text) { "h\xD8".dup.force_encoding(Encoding::UTF_16LE) }
 
       it "raises an error with a hint" do
-        expect { subject }.to raise_error ArgumentError, "Invalid text: encoding UTF-16LE is not supported\n" \
-          "[hint] Encode it to UTF-8: text.encode(Encoding::UTF_8)"
+        expect { subject }.to raise_error ArgumentError, "Invalid text: can not be read as UTF-8 (encoding UTF-16LE, index 0)\n[hint] Provide a valid UTF-8 string"
       end
     end
   end
@@ -110,11 +91,11 @@ RSpec.describe UrlExtract::Validate do
       end
 
       it "raises an error for a scheme with an invalid byte or in another encoding" do
-        hint = "[hint] Provide a valid UTF-8 string"
-
-        expect(error(schemes: ["\xFF://"])).to eq "Invalid scheme: \"\\xFF://\" provided\n#{hint}"
-        expect(error(schemes: ["магазин.".encode(Encoding::Windows_1251)])).to end_with hint
-        expect(error(schemes: ["https://".encode(Encoding::UTF_16LE)])).to end_with hint
+        expect(error(schemes: ["a\xFF://"])).to eq "Invalid scheme: can not be read as UTF-8 (encoding UTF-8, index 1)\n[hint] Provide a valid UTF-8 string"
+        expect(error(schemes: ["магазин.".encode(Encoding::Windows_1251)]))
+          .to eq "Invalid scheme: can not be read as UTF-8 (encoding Windows-1251)\n[hint] Provide a valid UTF-8 string"
+        expect(error(schemes: ["https://".encode(Encoding::UTF_16LE)]))
+          .to eq "Invalid scheme: can not be read as UTF-8 (encoding UTF-16LE)\n[hint] Provide a valid UTF-8 string"
       end
 
       it "takes ASCII characters only in another encoding" do

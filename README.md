@@ -54,10 +54,26 @@ UrlExtract.urls("Go to www.example.com", schemes: %w[https:// http:// www.])
 
 A URL is returned as the text writes it. In HTML it can hold a character reference, such as `&amp;`.
 
+### Encodings
+
+The finder reads UTF-8. A text in another encoding, such as Windows-1251, Shift_JIS or UTF-16LE,
+loads `url_extract/encodings`, which is not loaded by default. The finder then reads a UTF-8 copy of the text,
+and gives each URL in the encoding of the text, with its index in the text:
+
+```ruby
+text = "Привет https://a.com/путь.".encode(Encoding::Windows_1251)
+match = UrlExtract.matches(text).first
+match.url.encoding # => #<Encoding:Windows-1251>
+match.index        # => 7
+```
+
+A text of ASCII characters only needs no copy, in each encoding. The finder can not read
+a string of bytes that are not ASCII, a dummy encoding such as ISO-2022-JP, or an encoding
+that Ruby can not convert to UTF-8.
+
 ### Errors
 
-The text is in UTF-8, or holds ASCII characters only.
-A wrong option, a text in another encoding or with an invalid byte raises `ArgumentError`;
+A wrong option, a text with an invalid byte or in an encoding that the finder can not read raises `ArgumentError`;
 a text that is not a string raises `TypeError`. The second line of the message is a hint:
 
 ```ruby
@@ -68,6 +84,16 @@ UrlExtract.urls(text, scheme: %w[www.])
 UrlExtract.urls(text, trim: ".")
 # ArgumentError: Invalid value for trim: "." provided
 # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
+```
+
+Each string that the finder can not read as UTF-8 gives one error, whatever the cause: an invalid byte,
+a byte that is no character, or an encoding that the finder can not convert. The index points to the character
+at fault, when one character is at fault:
+
+```ruby
+UrlExtract.urls("Привет https://a.com/\xFF")
+# ArgumentError: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 21)
+# [hint] Provide a valid UTF-8 string
 ```
 
 ## Development
