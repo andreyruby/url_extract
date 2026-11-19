@@ -18,10 +18,6 @@ UrlExtract.matches("See https://a.com/x.").map(&:url)                 # => ["htt
 UrlExtract.matches("Or (http://b.com/y_(z)), then").map(&:url)         # => ["http://b.com/y_(z)"]
 UrlExtract.matches("https://a.com/x and https://a.com/x").map(&:url)  # => ["https://a.com/x", "https://a.com/x"]
 
-# Each URL one time
-UrlExtract.matches("https://a.com/x, https://a.com/x").map(&:url).uniq
-# => ["https://a.com/x"]
-
 # Brackets and non-ASCII characters
 UrlExtract.matches("See https://en.wikipedia.org/wiki/Ruby_(programming_language).").map(&:url)
 # => ["https://en.wikipedia.org/wiki/Ruby_(programming_language)"]
