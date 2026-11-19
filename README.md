@@ -31,7 +31,7 @@ match.index # => 4
 match.range # => 4...19
 
 # Wrap each URL in a link, from the last to the first
-text = +"See https://a.com/x and https://b.com/y."
+text = "See https://a.com/x and https://b.com/y."
 UrlExtract.matches(text).reverse_each do |match|
   text[match.range] = %(<a href="#{match.url}">#{match.url}</a>)
 end
