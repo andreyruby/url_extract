@@ -8,11 +8,14 @@
   first read. A scheme with no `://` that is only letters, such as `https`, an
   empty string in `schemes` or `trim`, and a `max_size` that is not a positive
   integer now raise `ArgumentError`.
-- Read a text in UTF-8, or of ASCII characters only. A text in another
-  encoding, such as Windows-1251 or a string of bytes that are not ASCII, now
-  raises `ArgumentError`, and so does a non-ASCII string of `schemes` or `trim`
-  in another encoding. Such a text gave wrong URLs before: in Shift_JIS, GBK
-  or Big5, the trim could cut a character in half.
+- Read a text in another encoding, such as Windows-1251, Shift_JIS or
+  UTF-16LE, through a UTF-8 copy: the first such text loads
+  `url_extract/encodings`. Each URL is in the encoding of the text. Such a text
+  gave wrong URLs before: in Shift_JIS, GBK or Big5, the trim could cut a
+  character in half, and UTF-16 raised `Encoding::CompatibilityError`.
+- A string of bytes that are not ASCII, a dummy encoding such as ISO-2022-JP,
+  and a non-ASCII string of `schemes` or `trim` in an encoding other than UTF-8
+  now raise `ArgumentError`.
 - Remove the `ascii_only` option. A URL always takes the characters that are
   not ASCII; a text of ASCII characters only gets the shorter regexp by itself.
 

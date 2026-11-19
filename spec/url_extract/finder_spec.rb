@@ -403,10 +403,10 @@ RSpec.describe UrlExtract::Finder do
   end
 
   context "with another encoding" do
-    let(:text) { "See https://a.com/я.".encode(Encoding::Windows_1251) }
+    let(:text) { "Я https://a.com/я.".encode(Encoding::Windows_1251) }
 
-    it "raises an error when the finder is made" do
-      expect { subject }.to raise_error ArgumentError, /\AInvalid text: encoding Windows-1251 is not supported\n/
+    it "gives each URL in the encoding of the text, with its index in the text" do
+      expect(subject.to_a).to match [have_attributes(url: "https://a.com/я".encode(Encoding::Windows_1251), index: 2)]
     end
   end
 
@@ -414,7 +414,7 @@ RSpec.describe UrlExtract::Finder do
     let(:text) { "http://a.com/x \xFF" }
 
     it "raises an error when the finder is made" do
-      expect { subject }.to raise_error ArgumentError, /\AInvalid text: invalid byte for UTF-8 at index 15\n/
+      expect { subject }.to raise_error ArgumentError, /\AInvalid text: can not be read as UTF-8 \(encoding UTF-8, index 15\)\n/
     end
   end
 

@@ -49,9 +49,12 @@ module UrlExtract
   #
   # The matches are in their order in the text, and they do not overlap.
   # The time is linear in the length of the text.
-  # The text is in UTF-8, or holds ASCII characters only.
-  # A text that is not a string raises `TypeError`. A text with an invalid byte, a text in another encoding
-  # and a wrong option raise `ArgumentError`. The second line of the message is a hint of what to provide.
+  # The finder reads UTF-8. A text in another encoding, such as Windows-1251 or Shift_JIS, first loads
+  # `url_extract/encodings`, which reads a UTF-8 copy of the text. A text of ASCII characters only needs no copy.
+  #
+  # A text that is not a string raises `TypeError`. A text with an invalid byte, a text in an encoding
+  # that the finder can not read and a wrong option raise `ArgumentError`.
+  # The second line of the message is a hint of what to provide.
   class Finder
     include Enumerable
 
@@ -77,23 +80,34 @@ module UrlExtract
       Validate.text(text)
       @text = text.frozen? ? text : text.dup.freeze
       @rules = self.class.rules(options)
+
+      # `url_extract/encodings` changes `scanned_text` and `each_url` of the class, for each finder after it.
+      require_relative "encodings" unless Validate.utf8?(@text)
+      @scanned_text = scanned_text(@text)
     end
 
     # Gives each match to the block when the finder finds it. With no block, returns an enumerator.
     # Each call reads the text again: call `to_a` to keep the matches.
-    def each(&block)
-      return to_enum(:each) unless block
+    def each
+      return to_enum(:each) unless block_given?
 
-      each_match(&block)
+      text = @text
+      each_url { |url, index| yield Match.new(url, index, text) }
       self
     end
 
     private
 
+    # The text that the scan reads: the text itself, in UTF-8 or of ASCII characters only.
+    def scanned_text(text)
+      text
+    end
+
+    # Gives each URL of the scanned text, and its index in characters.
     # The scan gives byte indexes. In a text of ASCII characters, they are the indexes in characters.
     # In another text, counting the characters between two URLs keeps the time linear.
-    def each_match
-      text = @text
+    def each_url
+      text = @scanned_text
       ascii = text.ascii_only?
       character_index = 0
       byte_index = 0
@@ -103,7 +117,7 @@ module UrlExtract
         character_index += ascii ? gap_size : text.byteslice(byte_index, gap_size).length
         byte_index = url_byte_index
 
-        yield Match.new(url, character_index, text)
+        yield url, character_index
       end
     end
   end

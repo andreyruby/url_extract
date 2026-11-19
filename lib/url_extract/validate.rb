@@ -20,18 +20,7 @@ module UrlExtract
       def text(text)
         fail_with("Invalid text: #{show(text)} provided", "Provide a string", error_class: TypeError) unless text.is_a?(String)
 
-        unless text.valid_encoding?
-          fail_with("Invalid text: invalid byte for #{text.encoding} at index #{invalid_index(text)}",
-            "Replace invalid bytes with text.scrub")
-        end
-        return if utf8?(text)
-
-        hint = if text.encoding == Encoding::BINARY
-          "Mark it as UTF-8: text.dup.force_encoding(Encoding::UTF_8)"
-        else
-          "Encode it to UTF-8: text.encode(Encoding::UTF_8)"
-        end
-        fail_with("Invalid text: encoding #{text.encoding} is not supported", hint)
+        unreadable("text", text, invalid_index(text)) unless text.valid_encoding?
       end
 
       # The finder reads UTF-8. A text of ASCII characters only reads the same in each encoding
@@ -48,7 +37,21 @@ module UrlExtract
         options.each { |name, value| send(name, value) }
       end
 
+      # Raises the error of each string that the finder can not read as UTF-8, whatever the cause:
+      # an invalid byte, a byte that is no character, or an encoding that the finder can not convert.
+      # The index is the index of the character at fault, when one character is at fault.
+      # `url_extract/encodings` raises its errors here too.
+      def unreadable(label, string, index = nil)
+        details = "encoding #{string.encoding}"
+        details += ", index #{index}" if index
+        fail_with("Invalid #{label}: can not be read as UTF-8 (#{details})", "Provide a valid UTF-8 string")
+      end
+
       private
+
+      def fail_with(message, hint, error_class: ArgumentError)
+        raise error_class, "#{message}\n[hint] #{hint}"
+      end
 
       def check_names(names)
         unknown_names = names - DEFAULTS.keys
@@ -110,16 +113,12 @@ module UrlExtract
         unless string.is_a?(String) && !string.empty?
           fail_with("Invalid #{label}: #{show(string)} provided", "Provide a non-empty string like #{example}")
         end
-        return if string.valid_encoding? && utf8?(string)
-
-        fail_with("Invalid #{label}: #{show(string)} provided", "Provide a valid UTF-8 string")
-      end
-
-      def fail_with(message, hint, error_class: ArgumentError)
-        raise error_class, "#{message}\n[hint] #{hint}"
+        unreadable(label, string, invalid_index(string)) unless string.valid_encoding?
+        unreadable(label, string) unless utf8?(string)
       end
 
       # The index of the first invalid character, in characters, as the index of a match.
+      # Only an error looks for it.
       def invalid_index(text)
         text.each_char.find_index { |character| !character.valid_encoding? }
       end
