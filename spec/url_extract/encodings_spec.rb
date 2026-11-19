@@ -36,12 +36,12 @@ RSpec.describe UrlExtract::Encodings do
     context "with #{encoding}" do
       let(:text) { utf8_text.encode(encoding) }
 
-      it "finds the URLs of the UTF-8 text, in the encoding of the text, at the same indexes" do
+      it "finds the URLs of the UTF-8 text, in the encoding of the text, at the same ranges" do
         found = matches(text)
         expected = matches(utf8_text)
 
         expect(found.map { |match| match.url.encode(Encoding::UTF_8) }).to eq expected.map(&:url)
-        expect(found.map(&:index)).to eq expected.map(&:index)
+        expect(found.map(&:range)).to eq expected.map(&:range)
         expect(found.map { |match| match.url.encoding }).to all eq Encoding.find(encoding)
         expect(found.map { |match| text[match.range] }).to eq found.map(&:url)
       end

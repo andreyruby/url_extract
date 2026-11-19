@@ -22,13 +22,11 @@ class UrlExtract
   class Match
     attr_reader url: String
 
-    attr_reader index: Integer
+    attr_reader range: Range[Integer]
 
     attr_reader text: String
 
     def initialize: (String url, Integer index, String text) -> void
-
-    def range: () -> Range[Integer]
 
     def ==: (untyped other) -> bool
   end
