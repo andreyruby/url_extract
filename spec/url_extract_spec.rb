@@ -218,6 +218,52 @@ RSpec.describe UrlExtract do
         expect(subject.to_a).to eq []
       end
     end
+
+    context "with localhost: as a start" do
+      let(:options) { {schemes: %w[localhost:]} }
+      let(:text) { "Open localhost:3000/x, LOCALHOST:8080 or http://localhost:3000/y, not mylocalhost:3000/z" }
+
+      it "finds it at the start of a word only, in each letter case" do
+        expect(subject.map(&:url)).to eq %w[localhost:3000/x LOCALHOST:8080 localhost:3000/y]
+      end
+    end
+  end
+
+  context "with an IP address or localhost as the host" do
+    context "with IPv4" do
+      let(:text) { "Open http://127.0.0.1:8080/x?y=1. Or http://user:pass@10.0.0.1:22/path." }
+
+      it "gives the URL with its port, path, query and user" do
+        expect(subject.to_a).to match [
+          have_attributes(url: "http://127.0.0.1:8080/x?y=1", index: 5),
+          have_attributes(url: "http://user:pass@10.0.0.1:22/path", index: 37)
+        ]
+      end
+    end
+
+    context "with IPv6" do
+      let(:text) { "Open http://[::1]:3000/ and http://[2001:db8::1]/a. See (http://[::1]:3000)." }
+
+      it "keeps the brackets of the address, and removes the brackets around the URL" do
+        expect(subject.map(&:url)).to eq %w[http://[::1]:3000/ http://[2001:db8::1]/a http://[::1]:3000]
+      end
+    end
+
+    context "with localhost" do
+      let(:text) { "Open http://localhost:3000/admin, or http://localhost." }
+
+      it "gives the URL with no punctuation after it" do
+        expect(subject.map(&:url)).to eq %w[http://localhost:3000/admin http://localhost]
+      end
+    end
+
+    context "with no scheme" do
+      let(:text) { "Open localhost:3000/x or 127.0.0.1:8080/x" }
+
+      it "gives no match" do
+        expect(subject.to_a).to eq []
+      end
+    end
   end
 
   context "with characters that are not ASCII" do
