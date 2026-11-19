@@ -16,14 +16,17 @@ Find and extract URLs from plain text:
 # Each URL, as the text writes it, with repeats
 UrlExtract.matches("See https://a.com/x.").map(&:url)
 # => ["https://a.com/x"]
+
 UrlExtract.matches("Or (http://b.com/y_(z)), then").map(&:url)
 # => ["http://b.com/y_(z)"]
+
 UrlExtract.matches("https://a.com/x and https://a.com/x").map(&:url)
 # => ["https://a.com/x", "https://a.com/x"]
 
 # Brackets and non-ASCII characters
 UrlExtract.matches("See https://en.wikipedia.org/wiki/Ruby_(programming_language).").map(&:url)
 # => ["https://en.wikipedia.org/wiki/Ruby_(programming_language)"]
+
 UrlExtract.matches("Статья: https://ru.wikipedia.org/wiki/Привет!").map(&:url)
 # => ["https://ru.wikipedia.org/wiki/Привет"]
 
@@ -31,8 +34,10 @@ UrlExtract.matches("Статья: https://ru.wikipedia.org/wiki/Привет!").
 match = UrlExtract.matches("See https://a.com/x.").first
 match.url
 # => "https://a.com/x"
+
 match.index
 # => 4
+
 match.range
 # => 4...19
 
@@ -51,16 +56,20 @@ UrlExtract.matches("https://a.com https://b.com https://c.com").first(2).map(&:u
 # Schemeless URLs, and other schemes
 UrlExtract.matches("Go to www.example.com", schemes: %w[https:// http:// www.]).map(&:url)
 # => ["www.example.com"]
+
 UrlExtract.matches("Get ftp://a.com/f.zip or write to mailto:me@a.com.", schemes: %w[ftp:// mailto:]).map(&:url)
 # => ["ftp://a.com/f.zip", "mailto:me@a.com"]
 
 # What the trim removes
 UrlExtract.matches("See https://a.com/x.", trim: []).map(&:url)
 # => ["https://a.com/x."]
+
 UrlExtract.matches("See https://a.com/x...", trim: %w[...]).map(&:url)
 # => ["https://a.com/x"]
+
 UrlExtract.matches("(https://a.com/x)", trim_brackets: :none).map(&:url)
 # => ["https://a.com/x)"]
+
 UrlExtract.matches("&quot;https://a.com/x&quot;", trim_html_entities: false).map(&:url)
 # => ["https://a.com/x&quot;"]
 
@@ -72,14 +81,17 @@ UrlExtract.matches("https://a.com/x https://a.com/very/long/path", max_size: 20)
 match = UrlExtract.matches("Привет https://a.com/путь.".encode(Encoding::Windows_1251)).first
 match.url.encoding
 # => #<Encoding:Windows-1251>
+
 match.index
 # => 7
 
 # A text with an invalid byte: no match, and a warning with a hint
 UrlExtract.matches("https://a.com/\xFF").to_a
 # => [], and a warning
+
 UrlExtract.matches("https://a.com/\xFF", on_encoding_error: :skip).to_a
 # => []
+
 UrlExtract.matches("https://a.com/\xFF", on_encoding_error: :raise)
 # raises UrlExtract::EncodingError
 ```
