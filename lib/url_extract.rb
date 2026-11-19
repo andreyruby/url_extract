@@ -6,7 +6,10 @@ require_relative "url_extract/version"
 
 # Finds and extracts each URL in a text.
 #
-#   UrlExtract.urls("See https://a.com/x.") # => ["https://a.com/x"]
+#   UrlExtract.matches("See https://a.com/x. And https://a.com/x").map(&:url)
+#   # => ["https://a.com/x", "https://a.com/x"]
+#
+# The URLs are raw: each URL as the text writes it, at each place, so a URL can come more than one time.
 #
 #   match = UrlExtract.matches("See https://a.com/x.").first
 #   match.url   # => "https://a.com/x"
@@ -88,11 +91,6 @@ class UrlExtract
   # Returns an extractor of the matches of the text: a `UrlExtract`. `UrlExtract` describes the options.
   def self.matches(text, **)
     new(text, **)
-  end
-
-  # Returns the list of the URLs of the text, as strings. `UrlExtract` describes the options.
-  def self.urls(text, **)
-    matches(text, **).map(&:url)
   end
 
   # The extractor reads a frozen copy of the text, so a change of the text during the scan

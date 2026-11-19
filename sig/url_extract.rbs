@@ -14,8 +14,6 @@ class UrlExtract
 
   def self.matches: (String text, **untyped options) -> UrlExtract
 
-  def self.urls: (String text, **untyped options) -> Array[String]
-
   def initialize: (String text, **untyped options) -> void
 
   def each: () { (Match match) -> void } -> self

@@ -4,7 +4,7 @@ class UrlExtract
   # Checks the text and the options of `UrlExtract.new`. For a value that the extractor can not take,
   # it raises an error of two lines: what is wrong, and a short hint of what to provide.
   #
-  #   UrlExtract.urls(text, trim: ".")
+  #   UrlExtract.matches(text, trim: ".")
   #   # ArgumentError: Invalid value for trim: "." provided
   #   # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
   #

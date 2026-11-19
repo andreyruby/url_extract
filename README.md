@@ -18,14 +18,17 @@ bundle add url_extract
 ## Usage
 
 ```ruby
-UrlExtract.urls("See https://a.com/x. Or (http://b.com/y_(z))")
-# => ["https://a.com/x", "http://b.com/y_(z)"]
+UrlExtract.matches("See https://a.com/x. Or (http://b.com/y_(z)), and https://a.com/x").map(&:url)
+# => ["https://a.com/x", "http://b.com/y_(z)", "https://a.com/x"]
 
 match = UrlExtract.matches("See https://a.com/x.").first
 match.url   # => "https://a.com/x"
 match.index # => 4
 match.range # => 4...19
 ```
+
+The URLs are raw: each URL as the text writes it, at each place, so a URL can come more than one time.
+For each URL one time, call `uniq` on the list.
 
 `UrlExtract.matches` returns an extractor: a `UrlExtract`, which is enumerable and lazy.
 `UrlExtract.new(text, **options)` makes the same extractor.
@@ -49,7 +52,7 @@ UrlExtract.matches(text).reverse_each { |match| text[match.range] = "<FILTERED>"
 | `trim_brackets` | `:unpaired` | Removes a bracket with no partner from the end of a URL. `:none` keeps it. |
 
 ```ruby
-UrlExtract.urls("Go to www.example.com", schemes: %w[https:// http:// www.])
+UrlExtract.matches("Go to www.example.com", schemes: %w[https:// http:// www.]).map(&:url)
 # => ["www.example.com"]
 ```
 
@@ -78,11 +81,11 @@ A wrong option, a text with an invalid byte or in an encoding that the extractor
 a text that is not a string raises `TypeError`. The second line of the message is a hint:
 
 ```ruby
-UrlExtract.urls(text, scheme: %w[www.])
+UrlExtract.matches(text, scheme: %w[www.])
 # ArgumentError: Unknown option :scheme
 # [hint] Allowed options: :schemes, :max_size, :trim, :trim_html_entities, :trim_brackets
 
-UrlExtract.urls(text, trim: ".")
+UrlExtract.matches(text, trim: ".")
 # ArgumentError: Invalid value for trim: "." provided
 # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
 ```
@@ -92,7 +95,7 @@ whatever the cause: an invalid byte, a byte that is no character, or an encoding
 The index points to the character at fault, when one character is at fault:
 
 ```ruby
-UrlExtract.urls("Привет https://a.com/\xFF")
+UrlExtract.matches("Привет https://a.com/\xFF")
 # UrlExtract::EncodingError: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 21)
 # [hint] Provide a valid UTF-8 string
 ```
