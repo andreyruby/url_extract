@@ -44,20 +44,31 @@ puts text
 
 ## Options
 
-Each option with its default, and `www.` added to the schemes:
+The options below are the defaults, so this call is the same as `UrlExtract.matches("See https://a.com/x.")`:
 
 ```ruby
 UrlExtract.matches(
-  "Go to www.example.com.",
-  schemes: %w[https:// http:// www.], # what starts a URL; www. and such only at the start of a word
-  max_size: 8000,                     # the largest URL, in bytes; nil for no limit
-  trim: %w[? ! . , : ; * _ ~],        # the strings to remove from the end of a URL
-  trim_html_entities: true,           # remove an HTML entity, such as &quot;, from the end of a URL
-  trim_brackets: :unpaired,           # remove a bracket with no partner from the end; :none keeps it
-  on_encoding_error: :warn            # a text not readable as UTF-8: :warn, :skip or :raise
+  "See https://a.com/x.",
+  schemes: %w[https:// http://],
+  max_size: 8000,
+  trim: %w[? ! . , : ; * _ ~],
+  trim_html_entities: true,
+  trim_brackets: :unpaired,
+  on_encoding_error: :warn
 ).map(&:url)
-# => ["www.example.com"]
+# => ["https://a.com/x"]
 ```
+
+- `:schemes` - defaults to `%w[https:// http://]`, what starts a URL. Use `%w[https:// http:// www.]` to find
+  URLs that start with `www.` too; `www.` and such start a URL only at the start of a word.
+- `:max_size` - defaults to `8000`, the largest URL in bytes: a longer URL gives no match. `nil` sets no limit.
+- `:trim` - defaults to `%w[? ! . , : ; * _ ~]`, the strings to remove from the end of a URL. `[]` removes nothing.
+- `:trim_html_entities` - defaults to `true`: removes an HTML entity, such as `&quot;`, from the end of a URL.
+  `false` keeps it.
+- `:trim_brackets` - defaults to `:unpaired`: removes a bracket with no partner from the end of a URL.
+  `:none` keeps each bracket.
+- `:on_encoding_error` - defaults to `:warn`: a text that can not be read as UTF-8 gives no match, and a warning.
+  `:skip` gives no warning, `:raise` raises `UrlExtract::EncodingError`.
 
 ## Raised errors
 
