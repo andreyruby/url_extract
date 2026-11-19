@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module UrlExtract
-  # Builds the rules of a finder from the options of `UrlExtract::Finder.new`.
+  # Builds the rules of an extractor from the options of `UrlExtract::Extractor.new`.
   class BuildRules # :nodoc: all
     Rules = Data.define(:start, :max_size, :trim)
 

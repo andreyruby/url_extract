@@ -13,7 +13,7 @@ require_relative "url_extract/version"
 #   match.index # => 4
 #   match.range # => 4...19
 #
-# `UrlExtract::Finder` describes the matches and the options.
+# `UrlExtract::Extractor` describes the matches and the options.
 module UrlExtract
   # The list of the "Autolinks (extension)" part of the GitHub Flavored Markdown Spec, with `;`:
   # https://github.github.com/gfm/#autolinks-extension-
@@ -22,12 +22,12 @@ module UrlExtract
   # https://www.rfc-editor.org/rfc/rfc9110#section-4.1
   MAX_SIZE = 8000
 
-  # The error of a text, or of a string of the options, that the finder can not read as UTF-8:
-  # an invalid byte, a byte that is no character, or an encoding that the finder can not convert.
+  # The error of a text, or of a string of the options, that the extractor can not read as UTF-8:
+  # an invalid byte, a byte that is no character, or an encoding that the extractor can not convert.
   # It is an `ArgumentError`, as Ruby raises for an invalid byte. It is not Ruby's `::EncodingError`.
   class EncodingError < ArgumentError; end
 
-  # The default options of a finder. `Finder` describes each option.
+  # The default options of an extractor. `Extractor` describes each option.
   DEFAULTS = {
     schemes: %w[https:// http://].freeze,
     max_size: MAX_SIZE,
@@ -36,12 +36,12 @@ module UrlExtract
     trim_brackets: :unpaired
   }.freeze
 
-  # Returns an enumerable finder of the matches of the text. `Finder` describes the options.
+  # Returns an enumerable extractor of the matches of the text. `Extractor` describes the options.
   def self.matches(text, **)
-    Finder.new(text, **)
+    Extractor.new(text, **)
   end
 
-  # Returns the list of the URLs of the text, as strings. `Finder` describes the options.
+  # Returns the list of the URLs of the text, as strings. `Extractor` describes the options.
   def self.urls(text, **)
     matches(text, **).map(&:url)
   end
@@ -55,7 +55,7 @@ require_relative "url_extract/paired_bracket_end"
 require_relative "url_extract/scan"
 require_relative "url_extract/trim"
 require_relative "url_extract/validate"
-require_relative "url_extract/finder"
+require_relative "url_extract/extractor"
 
-# Builds the rules of the default options when the file loads, so no finder waits for them.
-UrlExtract::Finder.rules({})
+# Builds the rules of the default options when the file loads, so no extractor waits for them.
+UrlExtract::Extractor.rules({})

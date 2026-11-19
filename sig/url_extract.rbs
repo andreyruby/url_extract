@@ -10,11 +10,11 @@ module UrlExtract
   class EncodingError < ArgumentError
   end
 
-  def self.matches: (String text, **untyped options) -> Finder
+  def self.matches: (String text, **untyped options) -> Extractor
 
   def self.urls: (String text, **untyped options) -> Array[String]
 
-  class Finder
+  class Extractor
     include Enumerable[Match]
 
     def self.rules: (Hash[Symbol, untyped] options) -> untyped

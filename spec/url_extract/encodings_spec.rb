@@ -5,7 +5,7 @@ require "url_extract/encodings"
 
 RSpec.describe UrlExtract::Encodings do
   def matches(text, **options)
-    UrlExtract::Finder.new(text, **options).to_a
+    UrlExtract::Extractor.new(text, **options).to_a
   end
 
   it "is not loaded by default, and loads at the first text in another encoding" do

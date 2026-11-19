@@ -12,14 +12,14 @@ RSpec.describe UrlExtract do
       expect(described_class.urls(text)).to eq ["https://a.com/x"]
     end
 
-    it "takes the options of the finder" do
+    it "takes the options of the extractor" do
       expect(described_class.urls(text, schemes: %w[https:// www.])).to eq ["https://a.com/x", "www.b.com/y"]
     end
   end
 
   describe ".matches" do
-    it "returns a finder of the matches" do
-      expect(described_class.matches(text)).to be_a(UrlExtract::Finder)
+    it "returns an extractor of the matches" do
+      expect(described_class.matches(text)).to be_a(UrlExtract::Extractor)
       expect(described_class.matches(text).to_a).to match [have_attributes(url: "https://a.com/x", index: 4)]
     end
   end

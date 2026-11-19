@@ -3,26 +3,26 @@
 module UrlExtract
   # Finds each URL in a text.
   #
-  #   match = UrlExtract::Finder.new('See https://a.com/x.').first
+  #   match = UrlExtract::Extractor.new('See https://a.com/x.').first
   #   match.url   # => "https://a.com/x"
   #   match.index # => 4
   #   match.range # => 4...19
   #
-  # A finder is enumerable:
+  # An extractor is enumerable:
   #
-  #   finder = UrlExtract::Finder.new(text, schemes: %w[https:// http:// www.])
+  #   extractor = UrlExtract::Extractor.new(text, schemes: %w[https:// http:// www.])
   #
-  #   finder.each { |match| puts match.url } # each match, when the finder finds it
-  #   finder.to_a                            # the list of the matches
-  #   finder.first(3)                        # the first 3 matches: it reads the text up to the third
-  #   finder.map(&:url)
+  #   extractor.each { |match| puts match.url } # each match, when the extractor finds it
+  #   extractor.to_a                            # the list of the matches
+  #   extractor.first(3)                        # the first 3 matches: it reads the text up to the third
+  #   extractor.map(&:url)
   #
-  # The class builds the rules of each set of options one time, so a new finder for each text costs little.
+  # The class builds the rules of each set of options one time, so a new extractor for each text costs little.
   #
   # A match has:
   # - url: the URL as the text writes it. In HTML it can hold a character reference, such as `&amp;`.
   # - index: the index of the URL in the text, in characters.
-  # - text: a frozen copy of the text, as it was when the finder read it.
+  # - text: a frozen copy of the text, as it was when the extractor read it.
   # - range: the place of the URL in the text. It replaces the URL:
   #
   #     text[match.range] = '<FILTERED>'
@@ -30,13 +30,13 @@ module UrlExtract
   #   To replace more than one URL, go from the last match to the first, as `reverse_each` does.
   #   A replacement moves the URLs after it.
   #
-  # The text is a plain text: the finder reads no tag. In HTML it finds a URL that starts with a scheme,
+  # The text is a plain text: the extractor reads no tag. In HTML it finds a URL that starts with a scheme,
   # also in an attribute, and it does not find a relative URL, such as `href="/path"`.
   #
   # The options:
   # - schemes: what starts a URL. A scheme with `://` starts a URL at each place.
   #   Another start, such as `www.`, starts a URL only at the start of a word, before a letter or a digit.
-  # - max_size: the largest size of a URL, in bytes. The finder gives no match for a longer URL,
+  # - max_size: the largest size of a URL, in bytes. The extractor gives no match for a longer URL,
   #   and no match for a part of it. `nil` sets no limit.
   # - trim: the strings to remove from the end of a URL, as `See https://a.com/x.` needs. `[]` removes nothing.
   # - trim_html_entities: `true` removes an HTML entity from the end of a URL, such as `&quot;`, `&#39;`
@@ -49,14 +49,14 @@ module UrlExtract
   #
   # The matches are in their order in the text, and they do not overlap.
   # The time is linear in the length of the text.
-  # The finder reads UTF-8. A text in another encoding, such as Windows-1251 or Shift_JIS, first loads
+  # The extractor reads UTF-8. A text in another encoding, such as Windows-1251 or Shift_JIS, first loads
   # `url_extract/encodings`, which reads a UTF-8 copy of the text. A text of ASCII characters only needs no copy.
   #
   # A text that is not a string raises `TypeError`. A text with an invalid byte, or in an encoding
-  # that the finder can not read, raises `UrlExtract::EncodingError`, an `ArgumentError`.
+  # that the extractor can not read, raises `UrlExtract::EncodingError`, an `ArgumentError`.
   # A wrong option raises `ArgumentError`.
   # The second line of the message is a hint of what to provide.
-  class Finder
+  class Extractor
     include Enumerable
 
     @rules = {}.freeze
@@ -75,19 +75,19 @@ module UrlExtract
       end
     end
 
-    # The finder reads a frozen copy of the text, so a change of the text during the scan
+    # The extractor reads a frozen copy of the text, so a change of the text during the scan
     # or after it does not change what a match holds. A frozen text needs no copy.
     def initialize(text, **options)
       Validate.text(text)
       @text = text.frozen? ? text : text.dup.freeze
       @rules = self.class.rules(options)
 
-      # `url_extract/encodings` changes `scanned_text` and `each_url` of the class, for each finder after it.
+      # `url_extract/encodings` changes `scanned_text` and `each_url` of the class, for each extractor after it.
       require_relative "encodings" unless Validate.utf8?(@text)
       @scanned_text = scanned_text(@text)
     end
 
-    # Gives each match to the block when the finder finds it. With no block, returns an enumerator.
+    # Gives each match to the block when the extractor finds it. With no block, returns an enumerator.
     # Each call reads the text again: call `to_a` to keep the matches.
     def each
       return to_enum(:each) unless block_given?
