@@ -6,6 +6,7 @@ Find and extract URLs from plain text:
 - Reads non-ASCII URLs, such as `https://ru.wikipedia.org/wiki/Привет`
 - Keeps only paired brackets
 - Gives the position of each URL
+- Reads localhost and IP URLs
 - Linear time, no dependencies
 
 ## Usage
@@ -42,6 +43,7 @@ puts text
 
 ## Options
 
+The defaults are a great start: try them first, and change an option only when a text needs it.
 The options below are the defaults, so this call is the same as `UrlExtract.matches("See https://a.com/x.")`:
 
 ```ruby
