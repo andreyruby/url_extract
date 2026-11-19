@@ -7,6 +7,9 @@ module UrlExtract
 
   DEFAULTS: Hash[Symbol, untyped]
 
+  class EncodingError < ArgumentError
+  end
+
   def self.matches: (String text, **untyped options) -> Finder
 
   def self.urls: (String text, **untyped options) -> Array[String]

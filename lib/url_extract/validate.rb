@@ -44,7 +44,8 @@ module UrlExtract
       def unreadable(label, string, index = nil)
         details = "encoding #{string.encoding}"
         details += ", index #{index}" if index
-        fail_with("Invalid #{label}: can not be read as UTF-8 (#{details})", "Provide a valid UTF-8 string")
+        fail_with("Invalid #{label}: can not be read as UTF-8 (#{details})", "Provide a valid UTF-8 string",
+          error_class: UrlExtract::EncodingError)
       end
 
       private

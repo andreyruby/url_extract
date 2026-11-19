@@ -414,7 +414,7 @@ RSpec.describe UrlExtract::Finder do
     let(:text) { "http://a.com/x \xFF" }
 
     it "raises an error when the finder is made" do
-      expect { subject }.to raise_error ArgumentError, /\AInvalid text: can not be read as UTF-8 \(encoding UTF-8, index 15\)\n/
+      expect { subject }.to raise_error UrlExtract::EncodingError, /\AInvalid text: can not be read as UTF-8 \(encoding UTF-8, index 15\)\n/
     end
   end
 

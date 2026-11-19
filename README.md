@@ -86,13 +86,13 @@ UrlExtract.urls(text, trim: ".")
 # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
 ```
 
-Each string that the finder can not read as UTF-8 gives one error, whatever the cause: an invalid byte,
-a byte that is no character, or an encoding that the finder can not convert. The index points to the character
-at fault, when one character is at fault:
+Each string that the finder can not read as UTF-8 raises `UrlExtract::EncodingError`, an `ArgumentError`,
+whatever the cause: an invalid byte, a byte that is no character, or an encoding that the finder can not convert.
+The index points to the character at fault, when one character is at fault:
 
 ```ruby
 UrlExtract.urls("Привет https://a.com/\xFF")
-# ArgumentError: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 21)
+# UrlExtract::EncodingError: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 21)
 # [hint] Provide a valid UTF-8 string
 ```
 
