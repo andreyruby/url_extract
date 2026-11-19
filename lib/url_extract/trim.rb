@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module UrlExtract
+class UrlExtract
   # Finds how much of a URL in a text stays, when the end of the URL belongs to the text around it. It removes:
   # - each string of the list, such as the dot of `See https://a.com/x.`
   # - with `trim_html_entities`, an HTML entity, such as the `&quot;` of `https://a.com/x&quot;`

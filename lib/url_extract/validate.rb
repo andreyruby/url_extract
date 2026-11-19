@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module UrlExtract
-  # Checks the text and the options of `UrlExtract::Extractor.new`. For a value that the extractor can not take,
+class UrlExtract
+  # Checks the text and the options of `UrlExtract.new`. For a value that the extractor can not take,
   # it raises an error of two lines: what is wrong, and a short hint of what to provide.
   #
   #   UrlExtract.urls(text, trim: ".")

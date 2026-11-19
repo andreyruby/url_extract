@@ -2,9 +2,9 @@
 
 require_relative "../url_extract"
 
-module UrlExtract
+class UrlExtract
   # Reads a text in an encoding other than UTF-8, such as Windows-1251, Shift_JIS, GB18030 or UTF-16LE.
-  # `UrlExtract::Extractor` loads this file when it gets such a text, so a program that reads UTF-8 only
+  # `UrlExtract.new` loads this file when it gets such a text, so a program that reads UTF-8 only
   # does not load it. `require "url_extract/encodings"` loads it ahead.
   #
   # The extractor reads a UTF-8 copy of the text, and gives each URL in the encoding of the text.
@@ -37,9 +37,9 @@ module UrlExtract
       end
     end
 
-    # The methods of `UrlExtract::Extractor` for a text in another encoding. A text in UTF-8 goes to the methods
+    # The methods of `UrlExtract` for a text in another encoding. A text in UTF-8 goes to the methods
     # of the class.
-    module Extractor
+    module Methods
       private
 
       def scanned_text(text)
@@ -55,5 +55,5 @@ module UrlExtract
     end
   end
 
-  Extractor.prepend(Encodings::Extractor)
+  prepend(Encodings::Methods)
 end

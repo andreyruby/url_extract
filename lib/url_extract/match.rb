@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module UrlExtract
+class UrlExtract
   # A URL that the extractor found in a text.
   class Match
     # The URL as the text writes it, and its index in the text, in characters.

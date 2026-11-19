@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module UrlExtract
+class UrlExtract
   # Returns the count of the bytes of the string that ends a URL, for the strings of the `trim` list
   # that have more than one byte, such as `...` or `»`. Returns 0 when no string ends the URL.
   # When more than one string ends the URL, it takes the longest.
