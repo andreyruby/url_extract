@@ -10,10 +10,11 @@ Gem::Specification.new do |spec|
 
   spec.summary = "Find and extract URLs from plain text"
   spec.description = <<~DESC.tr("\n", " ").strip
-    A URL extractor / detector for plain text: finds URLs in a string,
-    with their positions. Trims the punctuation, brackets and HTML
-    entities around a URL, and reads non-ASCII and www. links. Linear time,
-    no runtime dependencies.
+    A URL extractor / detector for plain text: finds each URL in a string,
+    with its position. Trims the punctuation, unpaired brackets and HTML
+    entities around a URL. Reads non-ASCII, localhost and IP URLs, www. links
+    as an option, and a text in another encoding. Linear time, no runtime
+    dependencies.
   DESC
   spec.homepage = "https://github.com/andreyruby/url_extract"
   spec.license = "MIT"
