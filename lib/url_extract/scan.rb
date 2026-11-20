@@ -42,7 +42,7 @@ class UrlExtract
       rest_size = @scanner.match?(@characters)
       text = @scanner.string
       size = @rules.trim.call(text, byte_index, start_size + rest_size)
-      return skip_rest(rest_size) if (size <= start_size) || (size > @rules.max_size)
+      return skip_rest(rest_size) if (size <= start_size) || (size > @rules.max_bytesize)
 
       @scanner.pos = byte_index + size
       yield(text.byteslice(byte_index, size), byte_index)

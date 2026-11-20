@@ -9,7 +9,7 @@ RSpec.describe UrlExtract::Trim do
 
   let(:trim) { UrlExtract::TRIM }
   let(:trim_html_entities) { true }
-  let(:trim_brackets) { :unpaired }
+  let(:trim_brackets) { true }
   let(:url) { "http://a.com/x/" }
 
   it "returns the URL" do
@@ -90,7 +90,7 @@ RSpec.describe UrlExtract::Trim do
     end
 
     context "with no trim of the brackets" do
-      let(:trim_brackets) { :none }
+      let(:trim_brackets) { false }
 
       it "removes the strings of the list up to the last bracket" do
         expect(subject).to eq "http://a.com/x_(y)[1]{2}).]}.)"
@@ -156,7 +156,7 @@ RSpec.describe UrlExtract::Trim do
 
   context "with an empty list and no trim of the brackets" do
     let(:trim) { [] }
-    let(:trim_brackets) { :none }
+    let(:trim_brackets) { false }
     let(:url) { "http://a.com/x)." }
 
     it "returns the URL" do

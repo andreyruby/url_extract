@@ -8,46 +8,12 @@ RSpec.describe UrlExtract::Match do
     expect(subject.text[subject.range]).to eq subject.url
   end
 
-  describe "#==" do
-    let(:other_match) { described_class.new(other_url, other_index, other_text) }
-    let(:other_url) { "http://a.com/я" }
-    let(:other_index) { 4 }
-    let(:other_text) { +"See http://a.com/я" }
+  specify "#to_s" do
+    expect(subject.to_s).to eq "http://a.com/я"
+    expect("Open #{subject}").to eq "Open http://a.com/я"
+  end
 
-    it "is true for a match with the same range in an equal text" do
-      expect(subject == other_match).to be true
-    end
-
-    context "with another text" do
-      let(:other_text) { "Get http://a.com/я" }
-
-      it "is false" do
-        expect(subject == other_match).to be false
-      end
-    end
-
-    context "with another index" do
-      let(:other_index) { 5 }
-
-      it "is false" do
-        expect(subject == other_match).to be false
-      end
-    end
-
-    context "with a URL of another length" do
-      let(:other_url) { "http://a.com/" }
-
-      it "is false" do
-        expect(subject == other_match).to be false
-      end
-    end
-
-    context "with an object that is no match" do
-      let(:other_match) { "http://a.com/я" }
-
-      it "is false" do
-        expect(subject == other_match).to be false
-      end
-    end
+  specify "#inspect" do
+    expect(subject.inspect).to eq '#<UrlExtract::Match url="http://a.com/я" range=4...18>'
   end
 end

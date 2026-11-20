@@ -10,7 +10,6 @@ class UrlExtract
   #
   # A text that is not a string raises `TypeError`. Each other wrong value raises `ArgumentError`.
   class Validate # :nodoc: all
-    TRIM_BRACKETS = %i[unpaired none].freeze
     ON_ENCODING_ERROR = %i[warn skip raise].freeze
     # The longest part of a wrong value that an error shows. The value can be a long text, given by mistake.
     MAX_SHOWN_SIZE = 60
@@ -49,6 +48,13 @@ class UrlExtract
           error_class: UrlExtract::EncodingError)
       end
 
+      # Shows a value in an error, or in `UrlExtract#inspect`: the result of `inspect`,
+      # cut to `MAX_SHOWN_SIZE` characters.
+      def show(value)
+        shown = value.inspect
+        (shown.length > MAX_SHOWN_SIZE) ? "#{shown[0, MAX_SHOWN_SIZE]}..." : shown
+      end
+
       private
 
       def fail_with(message, hint, error_class: ArgumentError)
@@ -64,26 +70,26 @@ class UrlExtract
           "Allowed options: #{DEFAULTS.keys.map(&:inspect).join(", ")}")
       end
 
-      def schemes(schemes)
-        check_array(:schemes, schemes)
+      def prefixes(prefixes)
+        check_array(:prefixes, prefixes)
 
-        schemes.each do |scheme|
-          check_string("scheme", scheme, %("https://" or "www."))
-          if scheme.match?(/[[:space:]]/)
-            fail_with("Invalid scheme: #{show(scheme)} provided", "Remove the spaces")
+        prefixes.each do |prefix|
+          check_string("prefix", prefix, %("https://" or "www."))
+          if prefix.match?(/[[:space:]]/)
+            fail_with("Invalid prefix: #{show(prefix)} provided", "Remove the spaces")
           end
           # A start such as `https` holds no `:` and no `.`, so it starts a URL only in a word such as `httpsx`.
-          if scheme.match?(/\A[[:alnum:]+-]+\z/)
-            fail_with("Invalid scheme: #{show(scheme)} provided", %(End it with "://" or ".", like "https://" or "www."))
+          if prefix.match?(/\A[[:alnum:]+-]+\z/)
+            fail_with("Invalid prefix: #{show(prefix)} provided", %(End it with "://" or ".", like "https://" or "www."))
           end
         end
       end
 
-      def max_size(max_size)
-        return if max_size.nil? || (max_size.is_a?(Integer) && max_size.positive?)
+      def max_bytesize(max_bytesize)
+        return if max_bytesize.nil? || (max_bytesize.is_a?(Integer) && max_bytesize.positive?)
 
-        fail_with("Invalid value for max_size: #{show(max_size)} provided",
-          "Provide a positive integer like #{DEFAULTS[:max_size]}, or nil for no limit")
+        fail_with("Invalid value for max_bytesize: #{show(max_bytesize)} provided",
+          "Provide a positive integer like #{DEFAULTS[:max_bytesize]}, or nil for no limit")
       end
 
       def trim(trim)
@@ -91,22 +97,20 @@ class UrlExtract
         trim.each { |string| check_string("trim string", string, '"."') }
       end
 
-      def trim_html_entities(value)
-        return if (value == true) || (value == false)
+      def trim_html_entities(value) = check_boolean(:trim_html_entities, value)
 
-        fail_with("Invalid value for trim_html_entities: #{show(value)} provided", "Provide true or false")
-      end
-
-      def trim_brackets(value)
-        return if TRIM_BRACKETS.include?(value)
-
-        fail_with("Invalid value for trim_brackets: #{show(value)} provided", "Provide :unpaired or :none")
-      end
+      def trim_brackets(value) = check_boolean(:trim_brackets, value)
 
       def on_encoding_error(value)
         return if ON_ENCODING_ERROR.include?(value)
 
         fail_with("Invalid value for on_encoding_error: #{show(value)} provided", "Provide :warn, :skip or :raise")
+      end
+
+      def check_boolean(name, value)
+        return if (value == true) || (value == false)
+
+        fail_with("Invalid value for #{name}: #{show(value)} provided", "Provide true or false")
       end
 
       def check_array(name, value)
@@ -129,12 +133,6 @@ class UrlExtract
       # Only an error looks for it.
       def invalid_index(text)
         text.each_char.find_index { |character| !character.valid_encoding? }
-      end
-
-      # Shows a value in an error: the result of `inspect`, cut to `MAX_SHOWN_SIZE` characters.
-      def show(value)
-        shown = value.inspect
-        (shown.length > MAX_SHOWN_SIZE) ? "#{shown[0, MAX_SHOWN_SIZE]}..." : shown
       end
     end
   end

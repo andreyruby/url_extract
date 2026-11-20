@@ -5,7 +5,7 @@ RSpec.describe UrlExtract::Scan do
   subject { [].tap { |found| described_class.new(text, rules).call { |url, byte_index| found << [url, byte_index] } } }
 
   let(:rules) { UrlExtract::BuildRules.call(**UrlExtract::DEFAULTS, **options) }
-  let(:options) { {trim: [], trim_html_entities: false, trim_brackets: :none} }
+  let(:options) { {trim: [], trim_html_entities: false, trim_brackets: false} }
   let(:text) { "Get http://a.com/x or HTTPS://B.com/y?z=1#top. Then ftp://c.com and www.d.com" }
 
   it "finds each http and https URL with its byte index" do
@@ -60,17 +60,17 @@ RSpec.describe UrlExtract::Scan do
     end
   end
 
-  context "with other schemes" do
-    let(:options) { {schemes: %w[ftp:// www.], trim: [], trim_brackets: :none} }
+  context "with other prefixes" do
+    let(:options) { {prefixes: %w[ftp:// www.], trim: [], trim_brackets: false} }
     let(:text) { "http://a.com sftp://b.com www.c.com (WWW.d.com) xwww.e.com яwww.f.com «www.g.com www. www.-" }
 
-    it "finds a scheme with a colon at each place, and another start only at the start of a word" do
+    it "finds a prefix with \"://\" at each place, and another start only at the start of a word" do
       expect(subject.map(&:first)).to eq %w[ftp://b.com www.c.com WWW.d.com) www.g.com]
     end
   end
 
-  context "with no scheme" do
-    let(:options) { {schemes: []} }
+  context "with no prefix" do
+    let(:options) { {prefixes: []} }
 
     it "finds no URL" do
       expect(subject).to eq []
@@ -87,7 +87,7 @@ RSpec.describe UrlExtract::Scan do
   end
 
   context "with a size limit" do
-    let(:options) { {max_size: 14} }
+    let(:options) { {max_bytesize: 14} }
     let(:text) { "http://a.com/x. http://a.com/xy?u=http://b.com http://c.com" }
 
     it "finds each URL of that size or less after the trim, and no part of a longer URL" do
@@ -95,7 +95,7 @@ RSpec.describe UrlExtract::Scan do
     end
 
     context "with no limit" do
-      let(:options) { {max_size: nil} }
+      let(:options) { {max_bytesize: nil} }
       let(:text) { "http://a.com/#{"x" * 9_000}" }
 
       it "finds a URL of each size" do
@@ -125,7 +125,7 @@ RSpec.describe UrlExtract::Scan do
   end
 
   context "with a text that takes Rinku a time that grows with the square of its length" do
-    let(:options) { {schemes: %w[https:// http:// ftp:// www.]} }
+    let(:options) { {prefixes: %w[https:// http:// ftp:// www.]} }
     let(:text) { "x://a.b" * 60_000 }
 
     it "finds no URL in a short time", :aggregate_failures do

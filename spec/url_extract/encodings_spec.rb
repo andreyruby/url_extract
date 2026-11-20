@@ -52,7 +52,7 @@ RSpec.describe UrlExtract::Encodings do
     let(:text) { "См. www.a.com/путь» и https://b.com".encode(Encoding::Windows_1251) }
 
     it "compares the strings of the options with the characters of the text" do
-      urls = matches(text, schemes: %w[www.], trim: %w[»]).map { |match| match.url.encode(Encoding::UTF_8) }
+      urls = matches(text, prefixes: %w[www.], trim: %w[»]).map { |match| match.url.encode(Encoding::UTF_8) }
 
       expect(urls).to eq ["www.a.com/путь"]
     end

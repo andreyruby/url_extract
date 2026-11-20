@@ -17,10 +17,14 @@ class UrlExtract
       @text = text
     end
 
-    # Two matches are equal when they are at the same place of the same text.
-    # The texts are equal by their content, so the matches of two extractors of one text are equal.
-    def ==(other)
-      other.is_a?(self.class) && (range == other.range) && (text == other.text)
+    # The URL, so `puts match` and `"#{match}"` give it.
+    def to_s
+      url
+    end
+
+    # Shows the URL and the range, and not the text, which can be large.
+    def inspect
+      "#<#{self.class} url=#{url.inspect} range=#{range.inspect}>"
     end
   end
 end

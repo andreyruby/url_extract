@@ -5,7 +5,7 @@ class UrlExtract
 
   TRIM: Array[String]
 
-  MAX_SIZE: Integer
+  MAX_BYTESIZE: Integer
 
   DEFAULTS: Hash[Symbol, untyped]
 
@@ -21,6 +21,8 @@ class UrlExtract
   def each: () { (Match match) -> void } -> self
           | () -> Enumerator[Match, self]
 
+  def inspect: () -> String
+
   class Match
     attr_reader url: String
 
@@ -30,6 +32,8 @@ class UrlExtract
 
     def initialize: (String url, Integer index, String text) -> void
 
-    def ==: (untyped other) -> bool
+    def to_s: () -> String
+
+    def inspect: () -> String
   end
 end

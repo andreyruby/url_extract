@@ -125,7 +125,7 @@ RSpec.describe UrlExtract do
   end
 
   context "with options" do
-    let(:options) { {schemes: %w[www.], trim: %w[,], trim_brackets: :none} }
+    let(:options) { {prefixes: %w[www.], trim: %w[,], trim_brackets: false} }
     let(:text) { "See (www.a.com/x), or http://b.com." }
 
     it "finds the URLs by the options" do
@@ -134,8 +134,8 @@ RSpec.describe UrlExtract do
 
     it "builds the rules of the options one time" do
       allow(UrlExtract::BuildRules).to receive(:call).and_call_original
-      first_options = {schemes: %w[http://], trim: %w[!]}
-      second_options = {schemes: %w[http://], trim: %w[!]}
+      first_options = {prefixes: %w[http://], trim: %w[!]}
+      second_options = {prefixes: %w[http://], trim: %w[!]}
 
       described_class.new(text, **first_options)
       described_class.new("http://a.com", **second_options)
@@ -146,7 +146,7 @@ RSpec.describe UrlExtract do
 
   # The numbers are the numbers of the examples in the "Autolinks (extension)" part of the spec.
   context "with the examples of the GitHub Flavored Markdown Spec" do
-    let(:options) { {schemes: %w[https:// http:// www.]} }
+    let(:options) { {prefixes: %w[https:// http:// www.]} }
     let(:bracket_url) { "www.google.com/search?q=Markup+(business)" }
 
     {
@@ -184,10 +184,10 @@ RSpec.describe UrlExtract do
     end
   end
 
-  context "with the schemes option" do
+  context "with the prefixes option" do
     let(:text) { "http://a.com HTTPS://b.com ftp://c.com www.d.com xwww.e.com" }
 
-    context "with the default schemes" do
+    context "with the default prefixes" do
       let(:options) { {} }
 
       it "finds each http and https URL, in each letter case" do
@@ -195,24 +195,24 @@ RSpec.describe UrlExtract do
       end
     end
 
-    context "with another scheme" do
-      let(:options) { {schemes: %w[ftp://]} }
+    context "with another prefix" do
+      let(:options) { {prefixes: %w[ftp://]} }
 
-      it "finds the URLs of that scheme only" do
+      it "finds the URLs of that prefix only" do
         expect(subject.map(&:url)).to eq %w[ftp://c.com]
       end
     end
 
-    context "with a start that is no scheme" do
-      let(:options) { {schemes: %w[www.]} }
+    context "with a prefix that is no scheme" do
+      let(:options) { {prefixes: %w[www.]} }
 
       it "finds it at the start of a word only" do
         expect(subject.map(&:url)).to eq %w[www.d.com]
       end
     end
 
-    context "with no scheme" do
-      let(:options) { {schemes: []} }
+    context "with no prefix" do
+      let(:options) { {prefixes: []} }
 
       it "gives no match" do
         expect(subject.to_a).to eq []
@@ -220,7 +220,7 @@ RSpec.describe UrlExtract do
     end
 
     context "with localhost: as a start" do
-      let(:options) { {schemes: %w[localhost:]} }
+      let(:options) { {prefixes: %w[localhost:]} }
       let(:text) { "Open localhost:3000/x, LOCALHOST:8080 or http://localhost:3000/y, not mylocalhost:3000/z" }
 
       it "finds it at the start of a word only, in each letter case" do
@@ -257,7 +257,7 @@ RSpec.describe UrlExtract do
       end
     end
 
-    context "with no scheme" do
+    context "with no prefix" do
       let(:text) { "Open localhost:3000/x or 127.0.0.1:8080/x" }
 
       it "gives no match" do
@@ -282,7 +282,7 @@ RSpec.describe UrlExtract do
     end
   end
 
-  context "with the max_size option" do
+  context "with the max_bytesize option" do
     let(:text) { "See #{url}." }
     let(:url) { "http://a.com/#{"x" * path_size}" }
 
@@ -305,7 +305,7 @@ RSpec.describe UrlExtract do
     end
 
     context "with a larger limit and a URL of 8001 bytes" do
-      let(:options) { {max_size: 8_001} }
+      let(:options) { {max_bytesize: 8_001} }
       let(:path_size) { 7_988 }
 
       it "gives the URL" do
@@ -314,7 +314,7 @@ RSpec.describe UrlExtract do
     end
 
     context "with no limit" do
-      let(:options) { {max_size: nil} }
+      let(:options) { {max_bytesize: nil} }
       let(:path_size) { 100_000 }
 
       it "gives a URL of each size" do
@@ -323,7 +323,7 @@ RSpec.describe UrlExtract do
     end
 
     context "with a smaller limit" do
-      let(:options) { {max_size: 14} }
+      let(:options) { {max_bytesize: 14} }
       let(:text) { "http://a.com/x. http://a.com/xy?u=http://b.com http://c.com" }
 
       it "counts the size after the trim, and gives no match for a part of a longer URL" do
@@ -332,7 +332,7 @@ RSpec.describe UrlExtract do
     end
 
     context "with a URL of characters of more than one byte" do
-      let(:options) { {max_size: 14} }
+      let(:options) { {max_bytesize: 14} }
       let(:text) { "http://a.com/я http://a.com/x" }
 
       it "counts the bytes of the URL" do
@@ -410,7 +410,7 @@ RSpec.describe UrlExtract do
   context "with the trim_brackets option" do
     let(:text) { "(http://a.com/a) http://a.com/b_(c) http://a.com/d( [http://a.com/e]. http://a.com/f[1]" }
 
-    context "with :unpaired, the default" do
+    context "with true, the default" do
       let(:options) { {} }
 
       it "removes each bracket with no partner from the end of a URL, and keeps a bracket with a partner" do
@@ -420,8 +420,8 @@ RSpec.describe UrlExtract do
       end
     end
 
-    context "with :none" do
-      let(:options) { {trim_brackets: :none} }
+    context "with false" do
+      let(:options) { {trim_brackets: false} }
 
       it "keeps each bracket" do
         expect(subject.map(&:url)).to eq [
@@ -536,11 +536,22 @@ RSpec.describe UrlExtract do
     expect(UrlExtract::VERSION).not_to be_nil
   end
 
+  describe "#inspect" do
+    it "shows the start of the text, and not the rules" do
+      expect(described_class.scan("See https://a.com/x.").inspect).to eq %(#<UrlExtract text="See https://a.com/x.">)
+      expect(described_class.scan("x" * 100).inspect).to eq %(#<UrlExtract text="#{"x" * 59}...>)
+    end
+
+    it "shows nil for a text that it can not read" do
+      expect(described_class.scan("\xFF", on_encoding_error: :skip).inspect).to eq "#<UrlExtract text=nil>"
+    end
+  end
+
   describe ".call" do
     it "is the same as .scan, so UrlExtract.(text) works" do
       text = "See https://a.com/x and https://b.com/y"
 
-      expect(described_class.(text, schemes: %w[https://]).first(2)).to eq described_class.scan(text).first(2) # standard:disable Style/LambdaCall
+      expect(described_class.(text, prefixes: %w[https://]).map(&:range)).to eq described_class.scan(text).map(&:range) # standard:disable Style/LambdaCall
       expect(described_class.method(:call)).to eq described_class.method(:scan)
     end
   end
@@ -556,7 +567,7 @@ RSpec.describe UrlExtract do
     end
 
     it "takes the options of the extractor" do
-      expect(described_class.scan(text, schemes: %w[www.]).map(&:url)).to eq ["www.b.com/y"]
+      expect(described_class.scan(text, prefixes: %w[www.]).map(&:url)).to eq ["www.b.com/y"]
     end
 
     it "gives the raw URLs: each URL at each place, as the text writes it" do
