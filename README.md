@@ -55,11 +55,11 @@ The options below are the defaults, so this call is the same as `UrlExtract.scan
 ```ruby
 UrlExtract.scan(
   "See https://a.com/x.",
-  schemes: %w[https:// http://],
-  max_size: 8000,
+  prefixes: %w[https:// http://],
+  max_bytesize: 8000,
   trim: %w[? ! . , : ; * _ ~],
   trim_html_entities: true,
-  trim_brackets: :unpaired,
+  trim_brackets: true,
   on_encoding_error: :warn
 ).map(&:url)
 # => ["https://a.com/x"]
@@ -68,19 +68,19 @@ UrlExtract.scan(
 Each option, with examples:
 
 ```ruby
-# :schemes - what starts a URL; www. and localhost: only at the start of a word
+# :prefixes - what starts a URL; www. and localhost: only at the start of a word
 text = "See www.a.com, localhost:3000/x and https://a.com/x"
 UrlExtract.scan(text).map(&:url)
 # => ["https://a.com/x"]
 
-UrlExtract.scan(text, schemes: %w[https:// http:// www. localhost:]).map(&:url)
+UrlExtract.scan(text, prefixes: %w[https:// http:// www. localhost:]).map(&:url)
 # => ["www.a.com", "localhost:3000/x", "https://a.com/x"]
 
-# :max_size - the largest URL, in bytes; a longer URL gives no match, and nil sets no limit
-UrlExtract.scan("https://a.com/x https://a.com/very/long/path", max_size: 20).map(&:url)
+# :max_bytesize - the largest URL, in bytes; a longer URL gives no match, and nil sets no limit
+UrlExtract.scan("https://a.com/x https://a.com/very/long/path", max_bytesize: 20).map(&:url)
 # => ["https://a.com/x"]
 
-UrlExtract.scan("https://a.com/x https://a.com/very/long/path", max_size: nil).map(&:url)
+UrlExtract.scan("https://a.com/x https://a.com/very/long/path", max_bytesize: nil).map(&:url)
 # => ["https://a.com/x", "https://a.com/very/long/path"]
 
 # :trim - the strings to remove from the end of a URL
@@ -94,8 +94,8 @@ UrlExtract.scan("See https://a.com/x...", trim: %w[...]).map(&:url)
 UrlExtract.scan("&quot;https://a.com/x&quot;", trim_html_entities: false).map(&:url)
 # => ["https://a.com/x&quot;"]
 
-# :trim_brackets - :none keeps a bracket with no partner at the end of a URL
-UrlExtract.scan("(https://a.com/x)", trim_brackets: :none).map(&:url)
+# :trim_brackets - false keeps a bracket with no partner at the end of a URL
+UrlExtract.scan("(https://a.com/x)", trim_brackets: false).map(&:url)
 # => ["https://a.com/x)"]
 
 # :on_encoding_error - a text not readable as UTF-8 gives no match; :warn also warns
@@ -162,7 +162,7 @@ UrlExtract.scan("https://a.com/x?u=https://b.com/y").map(&:url)
 # => ["https://a.com/x?u=https://b.com/y"]
 
 # www. at the start of a word only
-UrlExtract.scan("www.a.com xwww.b.com", schemes: %w[www.]).map(&:url)
+UrlExtract.scan("www.a.com xwww.b.com", prefixes: %w[www.]).map(&:url)
 # => ["www.a.com"]
 
 # Each URL at each place, with repeats

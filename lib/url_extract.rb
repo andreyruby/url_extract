@@ -18,7 +18,7 @@ require_relative "url_extract/version"
 # `UrlExtract.scan(text)`, its short form `UrlExtract.(text)`, and `UrlExtract.new(text)` return an extractor:
 # a `UrlExtract`, which is enumerable:
 #
-#   extractor = UrlExtract.new(text, schemes: %w[https:// http:// www.])
+#   extractor = UrlExtract.new(text, prefixes: %w[https:// http:// www.])
 #
 #   extractor.each { |match| puts match.url } # each match, when the extractor finds it
 #   extractor.to_a                            # the list of the matches
@@ -36,20 +36,21 @@ require_relative "url_extract/version"
 #
 #   To replace more than one URL, go from the last match to the first, as `reverse_each` does.
 #   A replacement moves the URLs after it.
+# - to_s: the URL, so `puts match` gives it. `inspect` shows the URL and the range, and not the text.
 #
 # The text is a plain text: the extractor reads no tag. In HTML it finds a URL that starts with a scheme,
 # also in an attribute, and it does not find a relative URL, such as `href="/path"`.
 #
 # The options:
-# - schemes: what starts a URL. A scheme with `://` starts a URL at each place.
+# - prefixes: what starts a URL. A prefix with `://` starts a URL at each place.
 #   Another start, such as `www.`, starts a URL only at the start of a word, before a letter or a digit.
-# - max_size: the largest size of a URL, in bytes. The extractor gives no match for a longer URL,
+# - max_bytesize: the largest size of a URL, in bytes. The extractor gives no match for a longer URL,
 #   and no match for a part of it. `nil` sets no limit.
 # - trim: the strings to remove from the end of a URL, as `See https://a.com/x.` needs. `[]` removes nothing.
 # - trim_html_entities: `true` removes an HTML entity from the end of a URL, such as `&quot;`, `&#39;`
 #   or `&#x27;`. `false` keeps it. An entity is one unit: the `;` of the `trim` list does not cut its end.
-# - trim_brackets: `:unpaired` removes from the end of a URL a closing bracket that the URL
-#   does not open, and an opening bracket that the URL does not close. `:none` removes no bracket.
+# - trim_brackets: `true` removes from the end of a URL a closing bracket that the URL
+#   does not open, and an opening bracket that the URL does not close. `false` removes no bracket.
 # - on_encoding_error: what a text that the extractor can not read as UTF-8 does. It gives no match,
 #   and `:warn` warns at the line of the caller, `:skip` says nothing, and `:raise` raises the error instead.
 #
@@ -73,7 +74,7 @@ class UrlExtract
   TRIM = %w[? ! . , : ; * _ ~].freeze
   # RFC 9110 recommends that HTTP software supports a URL of at least 8000 bytes:
   # https://www.rfc-editor.org/rfc/rfc9110#section-4.1
-  MAX_SIZE = 8000
+  MAX_BYTESIZE = 8000
 
   # The error of a text, or of a string of the options, that the extractor can not read as UTF-8:
   # an invalid byte, a byte that is no character, or an encoding that the extractor can not convert.
@@ -82,11 +83,11 @@ class UrlExtract
 
   # The default options of an extractor. `UrlExtract` describes each option.
   DEFAULTS = {
-    schemes: %w[https:// http://].freeze,
-    max_size: MAX_SIZE,
+    prefixes: %w[https:// http://].freeze,
+    max_bytesize: MAX_BYTESIZE,
     trim: TRIM,
     trim_html_entities: true,
-    trim_brackets: :unpaired,
+    trim_brackets: true,
     on_encoding_error: :warn
   }.freeze
 
@@ -120,6 +121,12 @@ class UrlExtract
     text = @text
     each_url { |url, index| yield Match.new(url, index, text) }
     self
+  end
+
+  # Shows the start of the text, and not the rules of the options: `#<UrlExtract text="See https://a.com/x.">`.
+  # A text that the extractor can not read shows as nil.
+  def inspect
+    "#<#{self.class} text=#{Validate.show(@text)}>"
   end
 
   private

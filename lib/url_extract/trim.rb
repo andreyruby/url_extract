@@ -4,7 +4,7 @@ class UrlExtract
   # Finds how much of a URL in a text stays, when the end of the URL belongs to the text around it. It removes:
   # - each string of the list, such as the dot of `See https://a.com/x.`
   # - with `trim_html_entities`, an HTML entity, such as the `&quot;` of `https://a.com/x&quot;`
-  # - with the brackets `:unpaired`, a bracket with no partner, as `PairedBracketEnd` says:
+  # - with `trim_brackets`, a bracket with no partner, as `PairedBracketEnd` says:
   #   the `)` of `(https://a.com/x)` and the `(` of `https://a.com/x( see)`. A bracket with a partner stays,
   #   as in `https://a.com/x_(y)`.
   #
@@ -15,12 +15,12 @@ class UrlExtract
   # A string of one byte, an HTML entity and a bracket make no object.
   # `UrlExtract::Validate` checks the options before.
   class Trim # :nodoc: all
-    BRACKETS = {unpaired: "()[]{}", none: ""}.freeze
+    BRACKETS = "()[]{}"
 
     def initialize(trim:, trim_html_entities:, trim_brackets:)
       one_byte_strings, long_strings = trim.partition { |string| string.bytesize == 1 }
       @string_bytes = byte_table(one_byte_strings.map(&:ord))
-      @bracket_bytes = byte_table(bracket_bytes(trim_brackets))
+      @bracket_bytes = byte_table(trim_brackets ? BRACKETS.bytes : [])
       @html_entities = trim_html_entities
       @long_string_end_size = UrlExtract::LongStringEndSize.new(long_strings)
     end
@@ -35,10 +35,6 @@ class UrlExtract
     end
 
     private
-
-    def bracket_bytes(brackets)
-      BRACKETS.fetch(brackets).bytes
-    end
 
     def byte_table(bytes)
       table = Array.new(256, false)

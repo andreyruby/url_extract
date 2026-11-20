@@ -59,43 +59,43 @@ RSpec.describe UrlExtract::Validate do
 
     it "takes each kind of value" do
       options = {
-        schemes: %w[https:// mailto: www. a.b+c], max_size: nil, trim: ["...", "»"], trim_html_entities: false,
-        trim_brackets: :none
+        prefixes: %w[https:// mailto: www. a.b+c], max_bytesize: nil, trim: ["...", "»"], trim_html_entities: false,
+        trim_brackets: false
       }
 
       expect { described_class.options(options) }.not_to raise_error
     end
 
     it "raises an error for an unknown option, with the allowed options" do
-      hint = "[hint] Allowed options: :schemes, :max_size, :trim, :trim_html_entities, :trim_brackets, :on_encoding_error"
+      hint = "[hint] Allowed options: :prefixes, :max_bytesize, :trim, :trim_html_entities, :trim_brackets, :on_encoding_error"
 
-      expect(error(scheme: %w[www.])).to eq "Unknown option :scheme\n#{hint}"
+      expect(error(prefix: %w[www.])).to eq "Unknown option :prefix\n#{hint}"
       expect(error(:format => :html, "tags" => [])).to eq "Unknown options :format, \"tags\"\n#{hint}"
     end
 
-    context "with schemes" do
+    context "with prefixes" do
       it "raises an error for a value that is no array" do
-        expect(error(schemes: "https://")).to eq "Invalid value for schemes: \"https://\" provided\n" \
+        expect(error(prefixes: "https://")).to eq "Invalid value for prefixes: \"https://\" provided\n" \
           '[hint] Provide array of strings like ["https://", "http://"]'
       end
 
       it "cuts a long value" do
-        expect(error(schemes: "a" * 100)).to start_with "Invalid value for schemes: \"#{"a" * 59}... provided\n"
+        expect(error(prefixes: "a" * 100)).to start_with "Invalid value for prefixes: \"#{"a" * 59}... provided\n"
       end
 
-      it "raises an error for a scheme that is no string, or an empty string" do
+      it "raises an error for a prefix that is no string, or an empty string" do
         hint = '[hint] Provide a non-empty string like "https://" or "www."'
 
-        expect(error(schemes: ["https://", :www])).to eq "Invalid scheme: :www provided\n#{hint}"
-        expect(error(schemes: [""])).to eq "Invalid scheme: \"\" provided\n#{hint}"
+        expect(error(prefixes: ["https://", :www])).to eq "Invalid prefix: :www provided\n#{hint}"
+        expect(error(prefixes: [""])).to eq "Invalid prefix: \"\" provided\n#{hint}"
       end
 
-      it "raises an error for a scheme with an invalid byte or in another encoding" do
-        expect(error(schemes: ["a\xFF://"])).to eq "Invalid scheme: can not be read as UTF-8 (encoding UTF-8, index 1)\n[hint] Provide a valid UTF-8 string"
-        expect(error(schemes: ["магазин.".encode(Encoding::Windows_1251)]))
-          .to eq "Invalid scheme: can not be read as UTF-8 (encoding Windows-1251)\n[hint] Provide a valid UTF-8 string"
-        expect(error(schemes: ["https://".encode(Encoding::UTF_16LE)]))
-          .to eq "Invalid scheme: can not be read as UTF-8 (encoding UTF-16LE)\n[hint] Provide a valid UTF-8 string"
+      it "raises an error for a prefix with an invalid byte or in another encoding" do
+        expect(error(prefixes: ["a\xFF://"])).to eq "Invalid prefix: can not be read as UTF-8 (encoding UTF-8, index 1)\n[hint] Provide a valid UTF-8 string"
+        expect(error(prefixes: ["магазин.".encode(Encoding::Windows_1251)]))
+          .to eq "Invalid prefix: can not be read as UTF-8 (encoding Windows-1251)\n[hint] Provide a valid UTF-8 string"
+        expect(error(prefixes: ["https://".encode(Encoding::UTF_16LE)]))
+          .to eq "Invalid prefix: can not be read as UTF-8 (encoding UTF-16LE)\n[hint] Provide a valid UTF-8 string"
       end
 
       it "raises an encoding error, which is an argument error" do
@@ -105,25 +105,25 @@ RSpec.describe UrlExtract::Validate do
       end
 
       it "takes ASCII characters only in another encoding" do
-        expect { described_class.options(schemes: ["https://".b]) }.not_to raise_error
+        expect { described_class.options(prefixes: ["https://".b]) }.not_to raise_error
       end
 
       it "raises an error for a space" do
-        expect(error(schemes: ["https:// "])).to eq "Invalid scheme: \"https:// \" provided\n[hint] Remove the spaces"
+        expect(error(prefixes: ["https:// "])).to eq "Invalid prefix: \"https:// \" provided\n[hint] Remove the spaces"
       end
 
-      it "raises an error for a scheme with no \"://\" and no \".\"" do
-        expect(error(schemes: ["https"])).to eq "Invalid scheme: \"https\" provided\n" \
+      it "raises an error for a prefix with no \"://\" and no \".\"" do
+        expect(error(prefixes: ["https"])).to eq "Invalid prefix: \"https\" provided\n" \
           '[hint] End it with "://" or ".", like "https://" or "www."'
       end
     end
 
-    it "raises an error for a max_size that is no positive integer" do
+    it "raises an error for a max_bytesize that is no positive integer" do
       hint = "[hint] Provide a positive integer like 8000, or nil for no limit"
 
-      expect(error(max_size: 0)).to eq "Invalid value for max_size: 0 provided\n#{hint}"
-      expect(error(max_size: "8000")).to eq "Invalid value for max_size: \"8000\" provided\n#{hint}"
-      expect(error(max_size: Float::INFINITY)).to eq "Invalid value for max_size: Infinity provided\n#{hint}"
+      expect(error(max_bytesize: 0)).to eq "Invalid value for max_bytesize: 0 provided\n#{hint}"
+      expect(error(max_bytesize: "8000")).to eq "Invalid value for max_bytesize: \"8000\" provided\n#{hint}"
+      expect(error(max_bytesize: Float::INFINITY)).to eq "Invalid value for max_bytesize: Infinity provided\n#{hint}"
     end
 
     context "with trim" do
@@ -150,9 +150,9 @@ RSpec.describe UrlExtract::Validate do
         .to eq "Invalid value for on_encoding_error: :ignore provided\n[hint] Provide :warn, :skip or :raise"
     end
 
-    it "raises an error for an unknown trim_brackets" do
+    it "raises an error for a trim_brackets that is not true or false" do
       expect(error(trim_brackets: "none"))
-        .to eq "Invalid value for trim_brackets: \"none\" provided\n[hint] Provide :unpaired or :none"
+        .to eq "Invalid value for trim_brackets: \"none\" provided\n[hint] Provide true or false"
     end
   end
 end
