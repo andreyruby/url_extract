@@ -536,22 +536,31 @@ RSpec.describe UrlExtract do
     expect(UrlExtract::VERSION).not_to be_nil
   end
 
-  describe ".matches" do
+  describe ".call" do
+    it "is the same as .scan, so UrlExtract.(text) works" do
+      text = "See https://a.com/x and https://b.com/y"
+
+      expect(described_class.(text, schemes: %w[https://]).first(2)).to eq described_class.scan(text).first(2) # standard:disable Style/LambdaCall
+      expect(described_class.method(:call)).to eq described_class.method(:scan)
+    end
+  end
+
+  describe ".scan" do
     let(:text) { "See https://a.com/x. Then www.b.com/y and https://a.com/x" }
 
     it "returns an extractor of the matches: a UrlExtract" do
-      expect(described_class.matches(text)).to be_a(described_class)
-      expect(described_class.matches(text).to_a).to match [
+      expect(described_class.scan(text)).to be_a(described_class)
+      expect(described_class.scan(text).to_a).to match [
         have_attributes(url: "https://a.com/x", range: 4...19), have_attributes(url: "https://a.com/x", range: 42...57)
       ]
     end
 
     it "takes the options of the extractor" do
-      expect(described_class.matches(text, schemes: %w[www.]).map(&:url)).to eq ["www.b.com/y"]
+      expect(described_class.scan(text, schemes: %w[www.]).map(&:url)).to eq ["www.b.com/y"]
     end
 
     it "gives the raw URLs: each URL at each place, as the text writes it" do
-      expect(described_class.matches(text).map(&:url)).to eq ["https://a.com/x", "https://a.com/x"]
+      expect(described_class.scan(text).map(&:url)).to eq ["https://a.com/x", "https://a.com/x"]
     end
   end
 end

@@ -12,7 +12,9 @@ class UrlExtract
   class EncodingError < ArgumentError
   end
 
-  def self.matches: (String text, **untyped options) -> UrlExtract
+  def self.scan: (String text, **untyped options) -> UrlExtract
+
+  alias self.call self.scan
 
   def initialize: (String text, **untyped options) -> void
 
