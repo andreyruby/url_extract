@@ -1,0 +1,60 @@
+# frozen_string_literal: true
+
+class UrlExtract
+  module Input # :nodoc: all
+    # Reads a text in an encoding other than UTF-8, such as Windows-1251, Shift_JIS, GB18030 or UTF-16LE.
+    # `Reader` loads this file when it gets such a text, so a program that reads UTF-8 only
+    # does not load it. `require "url_extract/encodings"` loads it ahead.
+    #
+    # The reader reads a UTF-8 copy of the text, and gives each URL in the encoding of the text.
+    # Ruby converts each character of such an encoding to one UTF-8 character, so the index of a URL in the copy
+    # is its index in the text, and the range of a match replaces the URL in the text.
+    # The copy costs one conversion of the text for each extractor, and its memory.
+    #
+    # It can not read:
+    # - a string of bytes (`ASCII-8BIT`) that are not ASCII: its bytes are no characters
+    # - a dummy encoding, such as ISO-2022-JP or UTF-16 with a byte order mark: Ruby counts its bytes, not its
+    #   characters, so an index in the copy is no index in the text
+    # - an encoding that Ruby can not convert to UTF-8, such as EUC-TW, or a character with no Unicode form
+    module Encodings # :nodoc: all
+      class << self
+        # The error names the character at fault: the first byte that is not ASCII in a string of bytes,
+        # or the first character with no Unicode form. A dummy encoding, and an encoding with no converter,
+        # are at fault as a whole.
+        def utf8_copy(text)
+          encoding = text.encoding
+          if encoding == Encoding::BINARY
+            Validations::Text.unreadable("text", text, text.each_char.find_index { |byte| !byte.ascii_only? })
+          end
+          Validations::Text.unreadable("text", text) if encoding.dummy?
+
+          text.encode(Encoding::UTF_8).freeze
+        rescue Encoding::ConverterNotFoundError
+          Validations::Text.unreadable("text", text)
+        rescue Encoding::UndefinedConversionError => error
+          index = text.each_char.find_index { |character| character == error.error_char }
+          Validations::Text.unreadable("text", text, index)
+        end
+      end
+
+      # The methods of `Reader` for a text in another encoding. A text in UTF-8 goes to the methods
+      # of the class.
+      module Methods
+        def each_url
+          return super if @scanned_text.equal?(@text)
+
+          encoding = @text.encoding
+          super { |url, index| yield url.encode(encoding), index }
+        end
+
+        private
+
+        def scanned_text(text)
+          Validations::Text.utf8?(text) ? super : Encodings.utf8_copy(text)
+        end
+      end
+    end
+
+    Reader.prepend(Encodings::Methods)
+  end
+end

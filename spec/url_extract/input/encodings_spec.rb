@@ -3,7 +3,7 @@
 require "open3"
 require "url_extract/encodings"
 
-RSpec.describe UrlExtract::Encodings do
+RSpec.describe UrlExtract::Input::Encodings do
   def matches(text, **options)
     UrlExtract.new(text, **options).to_a
   end
@@ -11,7 +11,7 @@ RSpec.describe UrlExtract::Encodings do
   it "is not loaded by default, and loads at the first text in another encoding" do
     script = <<~RUBY
       require "url_extract"
-      loaded = -> { $LOADED_FEATURES.any? { |path| path.end_with?("/url_extract/encodings.rb") } }
+      loaded = -> { $LOADED_FEATURES.any? { |path| path.end_with?("/url_extract/input/encodings.rb") } }
       UrlExtract.scan("See https://a.com/я").to_a
       UrlExtract.scan("See https://a.com/x".b).to_a
       print loaded.call

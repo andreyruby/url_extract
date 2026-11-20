@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe UrlExtract::PairedBracketEnd do
+RSpec.describe UrlExtract::Trimming::PairedBracketEnd do
   subject { described_class.call(text, start, text.bytesize) }
 
   let(:start) { 0 }

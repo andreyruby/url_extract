@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe UrlExtract::EntityEndSize do
+RSpec.describe UrlExtract::Trimming::EntityEnd do
   subject { described_class.call(text, start, text.bytesize) }
 
   let(:start) { 0 }

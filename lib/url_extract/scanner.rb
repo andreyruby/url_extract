@@ -5,7 +5,7 @@ class UrlExtract
   #
   # The time is linear in the length of the text: the scan reads the characters after a start one time.
   # It works with byte indexes, and makes one string for each URL: the URL.
-  class Scan # :nodoc: all
+  class Scanner # :nodoc: all
     # The characters that RFC 3986 allows in a URL, as the content of a regexp character class:
     # - unreserved: letters, digits and `-._~` (https://www.rfc-editor.org/rfc/rfc3986#section-2.3)
     # - reserved: `:/?#[]@` and `!$&'()*+,;=` (https://www.rfc-editor.org/rfc/rfc3986#section-2.2)

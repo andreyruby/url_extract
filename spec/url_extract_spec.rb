@@ -115,12 +115,12 @@ RSpec.describe UrlExtract do
   context "with the default options" do
     let(:options) { {} }
 
-    before { allow(UrlExtract::BuildRules).to receive(:call) }
+    before { allow(UrlExtract::Rules).to receive(:build) }
 
     it "uses the rules that the class built when it loaded" do
       expect(subject.map(&:url)).to eq %w[https://a.com/x http://b.com/y]
 
-      expect(UrlExtract::BuildRules).not_to have_received(:call)
+      expect(UrlExtract::Rules).not_to have_received(:build)
     end
   end
 
@@ -133,14 +133,14 @@ RSpec.describe UrlExtract do
     end
 
     it "builds the rules of the options one time" do
-      allow(UrlExtract::BuildRules).to receive(:call).and_call_original
+      allow(UrlExtract::Rules).to receive(:build).and_call_original
       first_options = {prefixes: %w[http://], trim: %w[!]}
       second_options = {prefixes: %w[http://], trim: %w[!]}
 
       described_class.new(text, **first_options)
       described_class.new("http://a.com", **second_options)
 
-      expect(UrlExtract::BuildRules).to have_received(:call).once
+      expect(UrlExtract::Rules).to have_received(:build).once
     end
   end
 
