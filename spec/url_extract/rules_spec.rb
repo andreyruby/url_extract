@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-RSpec.describe UrlExtract::BuildRules do
-  subject { described_class.call(**UrlExtract::DEFAULTS, **options) }
+RSpec.describe UrlExtract::Rules do
+  subject { described_class.build(**UrlExtract::DEFAULTS, **options) }
 
   let(:options) { {} }
 
   it "builds the rules" do
     expect(subject).to have_attributes(
-      start: %r{https://|http://}i, max_bytesize: 8000, trim: an_instance_of(UrlExtract::Trim)
+      start: %r{https://|http://}i, max_bytesize: 8000, trim: an_instance_of(UrlExtract::Trimming::Trim)
     )
   end
 

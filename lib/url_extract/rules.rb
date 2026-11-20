@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
 class UrlExtract
-  # Builds the rules of an extractor from the options of `UrlExtract.new`.
-  class BuildRules # :nodoc: all
-    Rules = Data.define(:start, :max_bytesize, :trim, :on_encoding_error)
+  # The rules of an extractor, built from its options:
+  # - start: the regexp of each prefix, or nil when nothing can start a URL
+  # - max_bytesize: the largest size of a URL, in bytes, or infinity
+  # - trim: the `Trimming::Trim` of the trim options
+  # - on_encoding_error: what a text that the extractor can not read does
+  Rules = Data.define(:start, :max_bytesize, :trim, :on_encoding_error)
 
+  class Rules # :nodoc: all
     @cache = {}.freeze
 
     class << self
@@ -15,20 +19,21 @@ class UrlExtract
       # read it with no lock. Two threads that add rules at one time can build the same rules twice.
       def cached(options)
         @cache[options] || begin
-          UrlExtract::Validate.options(options)
-          rules = call(**DEFAULTS, **options)
+          Validations::Options.check(options)
+          rules = build(**DEFAULTS, **options)
           @cache = @cache.merge(options => rules).freeze
           rules
         end
       end
 
       # Each option is present.
-      def call(**options)
-        start = start(options[:prefixes])
-        max_bytesize = options[:max_bytesize] || Float::INFINITY
-        trim = UrlExtract::Trim.new(**options.slice(:trim, :trim_html_entities, :trim_brackets))
-
-        Rules.new(start:, max_bytesize:, trim:, on_encoding_error: options[:on_encoding_error])
+      def build(**options)
+        new(
+          start: start(options[:prefixes]),
+          max_bytesize: options[:max_bytesize] || Float::INFINITY,
+          trim: Trimming::Trim.new(**options.slice(:trim, :trim_html_entities, :trim_brackets)),
+          on_encoding_error: options[:on_encoding_error]
+        )
       end
 
       private

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-RSpec.describe UrlExtract::Scan do
+RSpec.describe UrlExtract::Scanner do
   # Each URL that the scan gives to its block, with its byte index.
   subject { [].tap { |found| described_class.new(text, rules).call { |url, byte_index| found << [url, byte_index] } } }
 
-  let(:rules) { UrlExtract::BuildRules.call(**UrlExtract::DEFAULTS, **options) }
+  let(:rules) { UrlExtract::Rules.build(**UrlExtract::DEFAULTS, **options) }
   let(:options) { {trim: [], trim_html_entities: false, trim_brackets: false} }
   let(:text) { "Get http://a.com/x or HTTPS://B.com/y?z=1#top. Then ftp://c.com and www.d.com" }
 

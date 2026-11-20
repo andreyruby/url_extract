@@ -91,9 +91,9 @@ class UrlExtract
     on_encoding_error: :warn
   }.freeze
 
-  # The start of the path of each file of the gem. A warning names the first line outside them: the caller's.
-  SOURCE_PATH = File.join(__dir__, "url_extract")
-  private_constant :SOURCE_PATH
+  # The longest part of the text that `inspect` shows.
+  INSPECTED_TEXT_SIZE = 60
+  private_constant :INSPECTED_TEXT_SIZE
 
   # Returns an extractor of the matches of the text: a `UrlExtract`. `UrlExtract` describes the options.
   def self.scan(text, **)
@@ -109,8 +109,7 @@ class UrlExtract
   # A text that the extractor can not read as UTF-8 gives no match: `on_encoding_error` says whether it also
   # warns (`:warn`), says nothing (`:skip`), or raises (`:raise`).
   def initialize(text, **options)
-    @rules = BuildRules.cached(options)
-    @text, @scanned_text = read(text)
+    @reader = Input::Reader.new(text, Rules.cached(options))
   end
 
   # Gives each match to the block when the extractor finds it. With no block, returns an enumerator.
@@ -118,81 +117,32 @@ class UrlExtract
   def each
     return to_enum(:each) unless block_given?
 
-    text = @text
-    each_url { |url, index| yield Match.new(url, index, text) }
+    text = @reader.text
+    @reader.each_url { |url, index| yield Match.new(url, index, text) }
     self
   end
 
   # Shows the start of the text, and not the rules of the options: `#<UrlExtract text="See https://a.com/x.">`.
   # A text that the extractor can not read shows as nil.
   def inspect
-    "#<#{self.class} text=#{Validate.show(@text)}>"
-  end
-
-  private
-
-  # Returns the text and the text that the scan reads, or nil and nil for a text that the extractor can not read.
-  #
-  # The extractor reads a frozen copy of the text, so a change of the text during the scan
-  # or after it does not change what a match holds. A frozen text needs no copy.
-  # `url_extract/encodings` changes `scanned_text` and `each_url` of the class, for each extractor after it.
-  def read(text)
-    Validate.text(text)
-    text = text.frozen? ? text : text.dup.freeze
-    require_relative "url_extract/encodings" unless Validate.utf8?(text)
-    [text, scanned_text(text)]
-  rescue EncodingError => error
-    skip(error)
-  end
-
-  def skip(error)
-    case @rules.on_encoding_error
-    when :raise then raise error
-    when :warn
-      # The caller's line, in the form of Ruby's warnings. `uplevel:` counts no C frame, such as `Class#new`,
-      # so it can not take an index of `caller_locations`.
-      locations = caller_locations
-      caller = locations.find { |location| !location.path.start_with?(SOURCE_PATH) } || locations.last
-      warn("#{caller.path}:#{caller.lineno}: warning: url_extract: #{error.message}")
-    end
-
-    [nil, nil]
-  end
-
-  # The text that the scan reads: the text itself, in UTF-8 or of ASCII characters only.
-  def scanned_text(text)
-    text
-  end
-
-  # Gives each URL of the scanned text, and its index in characters.
-  # The scan gives byte indexes. In a text of ASCII characters, they are the indexes in characters.
-  # In another text, counting the characters between two URLs keeps the time linear.
-  def each_url
-    text = @scanned_text
-    return unless text
-
-    ascii = text.ascii_only?
-    character_index = 0
-    byte_index = 0
-
-    Scan.new(text, @rules).call do |url, url_byte_index|
-      gap_size = url_byte_index - byte_index
-      character_index += ascii ? gap_size : text.byteslice(byte_index, gap_size).length
-      byte_index = url_byte_index
-
-      yield url, character_index
-    end
+    shown = @reader.text.inspect
+    shown = "#{shown[0, INSPECTED_TEXT_SIZE]}..." if shown.length > INSPECTED_TEXT_SIZE
+    "#<#{self.class} text=#{shown}>"
   end
 end
 
-require_relative "url_extract/build_rules"
-require_relative "url_extract/entity_end_size"
-require_relative "url_extract/long_string_end_size"
 require_relative "url_extract/match"
-require_relative "url_extract/paired_bracket_end"
-require_relative "url_extract/scan"
-require_relative "url_extract/trim"
-require_relative "url_extract/validate"
+require_relative "url_extract/rules"
+require_relative "url_extract/scanner"
+require_relative "url_extract/input/encoding_error_policy"
+require_relative "url_extract/input/reader"
+require_relative "url_extract/trimming/entity_end"
+require_relative "url_extract/trimming/long_string_end"
+require_relative "url_extract/trimming/paired_bracket_end"
+require_relative "url_extract/trimming/trim"
+require_relative "url_extract/validations/failure"
+require_relative "url_extract/validations/options"
+require_relative "url_extract/validations/text"
 
 # Builds the rules of the default options when the file loads, so no extractor waits for them.
-UrlExtract::BuildRules.cached({})
+UrlExtract::Rules.cached({})

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe UrlExtract::Trim do
+RSpec.describe UrlExtract::Trimming::Trim do
   subject { url.byteslice(0, kept_size) }
 
   # The URL starts at byte 5 of the text, after a character of two bytes.
