@@ -6,16 +6,17 @@ require_relative "url_extract/version"
 
 # Finds and extracts each URL in a text.
 #
-#   UrlExtract.matches("See https://a.com/x. And https://a.com/x").map(&:url)
+#   UrlExtract.scan("See https://a.com/x. And https://a.com/x").map(&:url)
 #   # => ["https://a.com/x", "https://a.com/x"]
 #
 # The URLs are raw: each URL as the text writes it, at each place, so a URL can come more than one time.
 #
-#   match = UrlExtract.matches("See https://a.com/x.").first
+#   match = UrlExtract.scan("See https://a.com/x.").first
 #   match.url   # => "https://a.com/x"
 #   match.range # => 4...19
 #
-# `UrlExtract.matches(text)` and `UrlExtract.new(text)` return an extractor: a `UrlExtract`, which is enumerable:
+# `UrlExtract.scan(text)`, its short form `UrlExtract.(text)`, and `UrlExtract.new(text)` return an extractor:
+# a `UrlExtract`, which is enumerable:
 #
 #   extractor = UrlExtract.new(text, schemes: %w[https:// http:// www.])
 #
@@ -94,8 +95,13 @@ class UrlExtract
   private_constant :SOURCE_PATH
 
   # Returns an extractor of the matches of the text: a `UrlExtract`. `UrlExtract` describes the options.
-  def self.matches(text, **)
+  def self.scan(text, **)
     new(text, **)
+  end
+
+  class << self
+    # The same as `scan`, so `UrlExtract.(text)` works too.
+    alias_method :call, :scan
   end
 
   # A wrong option raises `ArgumentError`, and a text that is not a string raises `TypeError`.

@@ -61,3 +61,7 @@ RSpec/NamedSubject:
 # class, and replaces the hash to add rules
 ThreadSafety/ClassInstanceVariable:
   Enabled: false
+
+# `UrlExtract.(text)` is a documented form of `UrlExtract.scan(text)`
+Style/LambdaCall:
+  Enabled: false

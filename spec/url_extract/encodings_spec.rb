@@ -12,10 +12,10 @@ RSpec.describe UrlExtract::Encodings do
     script = <<~RUBY
       require "url_extract"
       loaded = -> { $LOADED_FEATURES.any? { |path| path.end_with?("/url_extract/encodings.rb") } }
-      UrlExtract.matches("See https://a.com/я").to_a
-      UrlExtract.matches("See https://a.com/x".b).to_a
+      UrlExtract.scan("See https://a.com/я").to_a
+      UrlExtract.scan("See https://a.com/x".b).to_a
       print loaded.call
-      UrlExtract.matches("See https://a.com/я".encode(Encoding::Windows_1251)).to_a
+      UrlExtract.scan("See https://a.com/я".encode(Encoding::Windows_1251)).to_a
       print " ", loaded.call
     RUBY
     output, status = Open3.capture2e(RbConfig.ruby, "-I", File.expand_path("../../lib", __dir__), "-e", script)
