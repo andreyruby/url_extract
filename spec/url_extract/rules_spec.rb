@@ -60,11 +60,16 @@ RSpec.describe UrlExtract::Rules do
       expect { described_class.from(trim: ".") }.to raise_error(ArgumentError, /Invalid value for trim/)
     end
 
-    it "builds frozen rules, which each thread and each Ractor can share" do
+    it "builds frozen rules, which each thread can share" do
       rules = described_class.from(trim: ["!", "x" * 20])
 
       expect([rules, rules.start, rules.trim, described_class::DEFAULT]).to all(be_frozen)
-      expect([rules, described_class::DEFAULT]).to all(satisfy { |value| Ractor.shareable?(value) }) if defined?(Ractor)
+    end
+
+    it "builds rules that each Ractor can share", if: defined?(Ractor) do
+      rules = described_class.from(trim: ["!", "x" * 20])
+
+      expect([rules, described_class::DEFAULT]).to all(satisfy { |value| Ractor.shareable?(value) })
     end
   end
 end

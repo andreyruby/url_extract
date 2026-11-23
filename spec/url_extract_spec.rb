@@ -545,60 +545,68 @@ RSpec.describe UrlExtract do
     end
   end
 
-  context "when it runs in a Ractor" do
-    around do |example|
-      experimental = Warning[:experimental]
-      Warning[:experimental] = false
-      example.run
-    ensure
-      Warning[:experimental] = experimental
-    end
-
-    before { skip "Ractor runs on CRuby only" unless RUBY_ENGINE == "ruby" }
-
-    # A Ractor block reaches no method of the example group, so it gets the class as an argument.
-    def in_ractor(*args, &)
-      result(Ractor.new(described_class, *args, &))
-    end
-
-    def result(ractor)
-      ractor.respond_to?(:value) ? ractor.value : ractor.take
+  # A Ractor stops the coverage of the process that starts it, so each example starts its Ractors
+  # in a Ruby process of its own.
+  context "when it runs in a Ractor", if: RUBY_ENGINE == "ruby" do
+    # Returns the output and the errors of the script.
+    def run_in_ruby(script)
+      prelude = <<~RUBY
+        require "url_extract"
+        Warning[:experimental] = false
+        def value(ractor) = ractor.respond_to?(:value) ? ractor.value : ractor.take
+      RUBY
+      lib = File.expand_path("../lib", __dir__)
+      output, errors, = Open3.capture3(RbConfig.ruby, "-I", lib, "-e", prelude + script)
+      [output, errors]
     end
 
     it "finds the URLs, with the default options and with others, and reads another encoding" do
-      expect(in_ractor { |extract| extract.scan("See https://a.com/x.").map(&:url) }).to eq ["https://a.com/x"]
-      expect(in_ractor { |extract| extract.scan("See www.a.com, www.b.com", prefixes: %w[www.]).map(&:url) })
-        .to eq ["www.a.com", "www.b.com"]
-      expect(in_ractor { |extract| extract.scan("Я https://a.com/я".encode(Encoding::Windows_1251)).map(&:range) })
-        .to eq [2...17]
+      script = <<~'RUBY'
+        p value(Ractor.new do
+          [
+            UrlExtract.scan("See https://a.com/x.").map(&:url),
+            UrlExtract.scan("See www.a.com, www.b.com", prefixes: %w[www.]).map(&:url),
+            UrlExtract.scan("\u042F https://a.com/\u044F".encode(Encoding::Windows_1251)).map(&:range)
+          ]
+        end)
+      RUBY
+
+      expect(run_in_ruby(script)).to eq [%([["https://a.com/x"], ["www.a.com", "www.b.com"], [2...17]]\n), ""]
     end
 
     it "raises an error of the options, and warns at the line of the caller" do
-      error = in_ractor do |extract|
-        extract.scan("x", trim: ".")
-      rescue ArgumentError => e
-        e.message
-      end
+      script = <<~'RUBY'
+        puts value(Ractor.new do
+          UrlExtract.scan("x", trim: ".")
+        rescue ArgumentError => e
+          e.message.lines.first
+        end)
+        p value(Ractor.new { UrlExtract.scan("a\xFF").to_a })
+      RUBY
 
-      expect(error).to start_with "Invalid value for trim"
-      expect { in_ractor { |extract| extract.scan("a\xFF").to_a } }
-        .to output(/\A#{Regexp.escape(__FILE__)}:\d+: warning: url_extract: Invalid text/).to_stderr_from_any_process
+      output, errors = run_in_ruby(script)
+
+      expect(output).to eq %(Invalid value for trim: "." provided\n[]\n)
+      expect(errors).to match(/\A-e:\d+: warning: url_extract: Invalid text/)
     end
 
     it "runs in several Ractors at once, each with other options" do
-      ractors = Array.new(4) do |number|
-        Ractor.new(described_class, number) do |extract, index|
-          Array.new(200) { extract.scan("See https://a.com/#{index}. www.b.com/#{index}", prefixes: %w[https:// www.]) }
-            .map { |extractor| extractor.map(&:url) }.uniq
+      script = <<~'RUBY'
+        ractors = Array.new(4) do |index|
+          Ractor.new(index) do |number|
+            Array.new(200) { UrlExtract.scan("See https://a.com/#{number}. www.b.com/#{number}", prefixes: %w[https:// www.]) }
+              .map { |extractor| extractor.map(&:url) }.uniq
+          end
         end
-      end
+        p ractors.map { |ractor| value(ractor) }
+      RUBY
+      urls = Array.new(4) { |index| [["https://a.com/#{index}", "www.b.com/#{index}"]] }
 
-      expect(ractors.map { |ractor| result(ractor) })
-        .to eq(Array.new(4) { |index| [["https://a.com/#{index}", "www.b.com/#{index}"]] })
+      expect(run_in_ruby(script)).to eq ["#{urls.inspect}\n", ""]
     end
 
     it "reads the version" do
-      expect(in_ractor { |extract| extract::VERSION }).to eq described_class::VERSION
+      expect(run_in_ruby("puts value(Ractor.new { UrlExtract::VERSION })")).to eq ["#{described_class::VERSION}\n", ""]
     end
   end
 
