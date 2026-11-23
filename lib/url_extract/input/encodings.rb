@@ -8,7 +8,7 @@ class UrlExtract
     #
     # The reader reads a UTF-8 copy of the text, and gives each URL in the encoding of the text.
     # Ruby converts each character of such an encoding to one UTF-8 character, so the index of a URL in the copy
-    # is its index in the text, and the range of a match replaces the URL in the text.
+    # is its index in the text, and the range of a match is the place of the URL in the text.
     # The copy costs one conversion of the text for each extractor, and its memory.
     #
     # It can not read:
