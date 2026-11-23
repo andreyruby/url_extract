@@ -26,6 +26,7 @@ unless ENV["CI"]
   end
 end
 
+require "open3"
 require "url_extract"
 
 RSpec.configure do |config|
