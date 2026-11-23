@@ -4,71 +4,32 @@ require "strscan"
 
 require_relative "url_extract/version"
 
-# Finds and extracts each URL in a text.
+# Finds each URL in a plain text, with its place in the text:
 #
-#   UrlExtract.scan("See https://a.com/x. And https://a.com/x").map(&:url)
-#   # => ["https://a.com/x", "https://a.com/x"]
+# ```ruby
+# UrlExtract.scan("See https://a.com/x. And https://a.com/x").map(&:url)
+# # => ["https://a.com/x", "https://a.com/x"]
+# ```
 #
 # The URLs are raw: each URL as the text writes it, at each place, so a URL can come more than one time.
-#
-#   match = UrlExtract.scan("See https://a.com/x.").first
-#   match.url   # => "https://a.com/x"
-#   match.range # => 4...19
-#
-# `UrlExtract.scan(text)`, its short form `UrlExtract.(text)`, and `UrlExtract.new(text)` return an extractor:
-# a `UrlExtract`, which is enumerable:
-#
-#   extractor = UrlExtract.new(text, prefixes: %w[https:// http:// www.])
-#
-#   extractor.each { |match| puts match.url } # each match, when the extractor finds it
-#   extractor.to_a                            # the list of the matches
-#   extractor.first(3)                        # the first 3 matches: it reads the text up to the third
-#   extractor.map(&:url)
-#
-# The class builds the rules of the default options one time, so a new extractor for each text costs little.
-# An extractor with other options builds its rules, which costs a few microseconds.
-# The class and each extractor are thread-safe, and each Ractor can use the class: the rules are frozen,
-# and each call of `each` reads the text with a scanner of its own.
-#
-# A match has:
-# - url: the URL as the text writes it. In HTML it can hold a character reference, such as `&amp;`.
-# - text: a frozen copy of the text, as it was when the extractor read it.
-# - range: the place of the URL in the text, in characters. It replaces the URL:
-#
-#     text[match.range] = '<FILTERED>'
-#
-#   To replace more than one URL, go from the last match to the first, as `reverse_each` does.
-#   A replacement moves the URLs after it.
-# - to_s: the URL, so `puts match` gives it. `inspect` shows the URL and the range, and not the text.
+# `UrlExtract.scan` describes the options, and `UrlExtract::Match` describes a match.
 #
 # The text is a plain text: the extractor reads no tag. In HTML it finds a URL that starts with a scheme,
 # also in an attribute, and it does not find a relative URL, such as `href="/path"`.
 #
-# The options:
-# - prefixes: what starts a URL. A prefix with `://` starts a URL at each place.
-#   Another start, such as `www.`, starts a URL only at the start of a word, before a letter or a digit.
-# - max_bytesize: the largest size of a URL, in bytes. The extractor gives no match for a longer URL,
-#   and no match for a part of it. `nil` sets no limit.
-# - trim: the strings to remove from the end of a URL, as `See https://a.com/x.` needs. `[]` removes nothing.
-# - trim_html_entities: `true` removes an HTML entity from the end of a URL, such as `&quot;`, `&#39;`
-#   or `&#x27;`. `false` keeps it. An entity is one unit: the `;` of the `trim` list does not cut its end.
-# - trim_brackets: `true` removes from the end of a URL a closing bracket that the URL
-#   does not open, and an opening bracket that the URL does not close. `false` removes no bracket.
-# - on_encoding_error: what a text that the extractor can not read as UTF-8 does. It gives no match,
-#   and `:warn` warns at the line of the caller, `:skip` says nothing, and `:raise` raises the error instead.
-#
 # A URL holds the characters of RFC 3986, and each character that is not ASCII and not a space,
 # as the URL Standard of browsers does. The URL ends before the first other character.
-#
 # The matches are in their order in the text, and they do not overlap.
-# The time is linear in the length of the text.
+#
 # The extractor reads UTF-8. A text in another encoding, such as Windows-1251 or Shift_JIS, first loads
 # `url_extract/encodings`, which reads a UTF-8 copy of the text. A text of ASCII characters only needs no copy.
 #
-# A wrong option raises `ArgumentError`, and a text that is not a string raises `TypeError`: they are bugs
-# of the calling code. With `on_encoding_error: :raise`, a text with an invalid byte, or in an encoding
-# that the extractor can not read, raises `UrlExtract::EncodingError`, an `ArgumentError`.
-# The second line of each message is a hint of what to provide.
+# The time is linear in the length of the text. The class builds the rules of the default options one time,
+# so a new extractor for each text costs little. An extractor with other options builds its rules,
+# which costs a few microseconds.
+#
+# The class and each extractor are thread-safe, and each Ractor can use the class: the rules are frozen,
+# and each call of `each` reads the text with a scanner of its own.
 class UrlExtract
   include Enumerable
 
@@ -76,12 +37,18 @@ class UrlExtract
   # or an encoding that the extractor can not convert.
   #
   # It raises only with `on_encoding_error: :raise`. With the default, `:warn`, such a text gives no match
-  # and warns, and with `:skip` it gives no match and says nothing.
+  # and warns, and with `:skip` it gives no match and says nothing:
+  #
+  # ```ruby
+  # UrlExtract.scan("See https://a.com/x \xFF", on_encoding_error: :raise)
+  # # UrlExtract::EncodingError: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 20)
+  # # [hint] Provide a valid UTF-8 string
+  # ```
   #
   # It is an `ArgumentError`, as Ruby raises for an invalid byte. It is not Ruby's `::EncodingError`.
   class EncodingError < ArgumentError; end
 
-  # The default options of an extractor. `UrlExtract` describes each option.
+  # The default options of an extractor. `UrlExtract.scan` describes each option.
   DEFAULTS = {
     prefixes: %w[https:// http://].freeze,
     # RFC 9110 recommends that HTTP software supports a URL of at least 8000 bytes:
@@ -99,24 +66,122 @@ class UrlExtract
   INSPECTED_TEXT_SIZE = 60
   private_constant :INSPECTED_TEXT_SIZE
 
-  # Returns an extractor of the matches of the text: a `UrlExtract`. `UrlExtract` describes the options.
+  # call-seq:
+  #   scan(text, **options) -> url_extract
+  #
+  # Returns an extractor of the URLs of the text: a `UrlExtract`, which is enumerable.
+  # It reads the text only as far as a method of `Enumerable` asks: `first(2)` reads it up to the second URL:
+  #
+  # ```ruby
+  # extractor = UrlExtract.scan("See https://a.com/x, https://b.com/y and https://c.com/z.")
+  # extractor.map(&:url)          # => ["https://a.com/x", "https://b.com/y", "https://c.com/z"]
+  # extractor.first(2).map(&:url) # => ["https://a.com/x", "https://b.com/y"]
+  # ```
+  #
+  # `UrlExtract.(text)` is the same:
+  #
+  # ```ruby
+  # UrlExtract.("See https://a.com/x.").map(&:url) # => ["https://a.com/x"]
+  # ```
+  #
+  # Each option has its default in `DEFAULTS`.
+  #
+  # With `prefixes:`, what starts a URL. A prefix with `://` starts a URL at each place. Another prefix,
+  # such as `www.`, starts a URL only at the start of a word, before a letter or a digit:
+  #
+  # ```ruby
+  # text = "See www.a.com, localhost:3000/x and https://a.com/x"
+  # UrlExtract.scan(text, prefixes: %w[www. localhost: https://]).map(&:url)
+  # # => ["www.a.com", "localhost:3000/x", "https://a.com/x"]
+  # ```
+  #
+  # With `max_bytesize:`, the largest size of a URL, in bytes. A longer URL gives no match, and no match
+  # for a part of it. `nil` sets no limit:
+  #
+  # ```ruby
+  # text = "See https://a.com/x and https://a.com/very/long/path"
+  # UrlExtract.scan(text, max_bytesize: 20).map(&:url)  # => ["https://a.com/x"]
+  # UrlExtract.scan(text, max_bytesize: nil).map(&:url) # => ["https://a.com/x", "https://a.com/very/long/path"]
+  # ```
+  #
+  # With `trim:`, the strings to remove from the end of a URL. `[]` removes nothing:
+  #
+  # ```ruby
+  # UrlExtract.scan("See https://a.com/x.", trim: []).map(&:url)                # => ["https://a.com/x."]
+  # UrlExtract.scan("See https://a.com/x...»", trim: ["...", "»"]).map(&:url) # => ["https://a.com/x"]
+  # ```
+  #
+  # With `trim_html_entities: true`, removes an HTML entity from the end of a URL, such as `&quot;`, `&#39;`
+  # or `&#x27;`. An entity is one unit: the `;` of the `trim` list does not cut its end. `false` keeps it:
+  #
+  # ```ruby
+  # text = "<p>&quot;https://a.com/x&quot;</p>"
+  # UrlExtract.scan(text).map(&:url)                            # => ["https://a.com/x"]
+  # UrlExtract.scan(text, trim_html_entities: false).map(&:url) # => ["https://a.com/x&quot;"]
+  # ```
+  #
+  # With `trim_brackets: true`, removes from the end of a URL a closing bracket that the URL does not open,
+  # and an opening bracket that the URL does not close. `false` removes no bracket:
+  #
+  # ```ruby
+  # UrlExtract.scan("(See https://a.com/x) and https://en.wikipedia.org/wiki/Ruby_(programming_language)").map(&:url)
+  # # => ["https://a.com/x", "https://en.wikipedia.org/wiki/Ruby_(programming_language)"]
+  # UrlExtract.scan("(See https://a.com/x)", trim_brackets: false).map(&:url) # => ["https://a.com/x)"]
+  # ```
+  #
+  # With `on_encoding_error:`, what a text that the extractor can not read as UTF-8 does. It gives no match,
+  # and `:warn` warns at the line of the caller, `:skip` says nothing, and `:raise` raises
+  # `UrlExtract::EncodingError` instead:
+  #
+  # ```ruby
+  # UrlExtract.scan("See https://a.com/x \xFF").to_a                           # => []
+  # # warning: url_extract: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 20)
+  # UrlExtract.scan("See https://a.com/x \xFF", on_encoding_error: :skip).to_a # => []
+  # ```
+  #
+  # A wrong option raises `ArgumentError`, and a text that is not a string raises `TypeError`: they are bugs
+  # of the calling code. The second line of each message is a hint of what to provide:
+  #
+  # ```ruby
+  # UrlExtract.scan("See https://a.com/x.", trim: ".")
+  # # ArgumentError: Invalid value for trim: "." provided
+  # # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
+  # ```
   def self.scan(text, **)
     new(text, **)
   end
 
   class << self
-    # The same as `scan`, so `UrlExtract.(text)` works too.
+    # The same as `UrlExtract.scan`, so `UrlExtract.(text)` works too.
     alias_method :call, :scan
   end
 
-  # A wrong option raises `ArgumentError`, and a text that is not a string raises `TypeError`.
-  # A text that the extractor can not read as UTF-8 gives no match: `on_encoding_error` says whether it also
-  # warns (`:warn`), says nothing (`:skip`), or raises (`:raise`).
+  # call-seq:
+  #   new(text, **options) -> url_extract
+  #
+  # The same as `UrlExtract.scan`.
   def initialize(text, **options)
     @reader = Input::Reader.new(text, Rules.from(options))
   end
 
-  # Gives each match to the block when the extractor finds it. With no block, returns an enumerator.
+  # call-seq:
+  #   each {|match| ... } -> self
+  #   each -> enumerator
+  #
+  # With a block given, calls the block with each match, when the extractor finds it; returns `self`:
+  #
+  # ```ruby
+  # UrlExtract.scan("See https://a.com/x and https://b.com/y").each { |match| p match.url }
+  # # => "https://a.com/x"
+  # # => "https://b.com/y"
+  # ```
+  #
+  # With no block given, returns an enumerator:
+  #
+  # ```ruby
+  # UrlExtract.scan("See https://a.com/x and https://b.com/y").each.next.url # => "https://a.com/x"
+  # ```
+  #
   # Each call reads the text again: call `to_a` to keep the matches.
   def each
     return to_enum(:each) unless block_given?
@@ -126,8 +191,20 @@ class UrlExtract
     self
   end
 
-  # Shows the start of the text, and not the rules of the options: `#<UrlExtract text="See https://a.com/x.">`.
-  # A text that the extractor can not read shows as nil.
+  # call-seq:
+  #   inspect -> string
+  #
+  # Returns a string that shows the start of the text, and not the rules of the options:
+  #
+  # ```ruby
+  # UrlExtract.scan("See https://a.com/x.") # => #<UrlExtract text="See https://a.com/x.">
+  # ```
+  #
+  # A text that the extractor can not read shows as nil:
+  #
+  # ```ruby
+  # UrlExtract.scan("\xFF", on_encoding_error: :skip) # => #<UrlExtract text=nil>
+  # ```
   def inspect
     shown = @reader.text.inspect
     shown = "#{shown[0, INSPECTED_TEXT_SIZE]}..." if shown.length > INSPECTED_TEXT_SIZE
