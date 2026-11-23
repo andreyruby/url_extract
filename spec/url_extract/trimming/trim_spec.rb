@@ -7,7 +7,7 @@ RSpec.describe UrlExtract::Trimming::Trim do
   let(:text) { "я, #{url} and more" }
   let(:kept_size) { described_class.new(trim:, trim_html_entities:, trim_brackets:).call(text, 4, url.bytesize) }
 
-  let(:trim) { UrlExtract::TRIM }
+  let(:trim) { UrlExtract::DEFAULTS[:trim] }
   let(:trim_html_entities) { true }
   let(:trim_brackets) { true }
   let(:url) { "http://a.com/x/" }
