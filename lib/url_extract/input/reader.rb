@@ -29,7 +29,7 @@ class UrlExtract
         character_index = 0
         byte_index = 0
 
-        Scanner.new(text, @rules).call do |url, url_byte_index|
+        Scanner.new(text, @rules).each_url do |url, url_byte_index|
           gap_size = url_byte_index - byte_index
           character_index += ascii ? gap_size : text.byteslice(byte_index, gap_size).length
           byte_index = url_byte_index

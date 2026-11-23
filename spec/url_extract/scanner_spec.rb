@@ -2,7 +2,7 @@
 
 RSpec.describe UrlExtract::Scanner do
   # Each URL that the scan gives to its block, with its byte index.
-  subject { [].tap { |found| described_class.new(text, rules).call { |url, byte_index| found << [url, byte_index] } } }
+  subject { described_class.new(text, rules).to_enum(:each_url).to_a }
 
   let(:rules) { UrlExtract::Rules.build(**UrlExtract::DEFAULTS, **options) }
   let(:options) { {trim: [], trim_html_entities: false, trim_brackets: false} }

@@ -24,22 +24,22 @@ class UrlExtract
         def utf8_copy(text)
           encoding = text.encoding
           if encoding == Encoding::BINARY
-            Validations::Text.unreadable("text", text, text.each_char.find_index { |byte| !byte.ascii_only? })
+            Validations::Text.fail_unreadable("text", text, text.each_char.find_index { |byte| !byte.ascii_only? })
           end
-          Validations::Text.unreadable("text", text) if encoding.dummy?
+          Validations::Text.fail_unreadable("text", text) if encoding.dummy?
 
           text.encode(Encoding::UTF_8).freeze
         rescue Encoding::ConverterNotFoundError
-          Validations::Text.unreadable("text", text)
+          Validations::Text.fail_unreadable("text", text)
         rescue Encoding::UndefinedConversionError => error
           index = text.each_char.find_index { |character| character == error.error_char }
-          Validations::Text.unreadable("text", text, index)
+          Validations::Text.fail_unreadable("text", text, index)
         end
       end
 
       # The methods of `Reader` for a text in another encoding. A text in UTF-8 goes to the methods
       # of the class.
-      module Methods
+      module ReaderMethods
         def each_url
           return super if @scanned_text.equal?(@text)
 
@@ -55,6 +55,6 @@ class UrlExtract
       end
     end
 
-    Reader.prepend(Encodings::Methods)
+    Reader.prepend(Encodings::ReaderMethods)
   end
 end

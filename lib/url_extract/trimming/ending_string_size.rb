@@ -10,20 +10,20 @@ class UrlExtract
     class EndingStringSize # :nodoc: all
       def initialize(strings)
         longest_first_strings = strings.sort_by { |string| -string.bytesize }
-        @strings_bytes = longest_first_strings.map { |string| string.bytes.freeze }.freeze
+        @byte_sequences = longest_first_strings.map { |string| string.bytes.freeze }.freeze
         freeze
       end
 
       # The URL is the bytes of the text from `start` to `finish`.
       # The loops are `while` loops: a `return` out of a block makes an object.
       def call(text, start, finish)
-        strings_bytes = @strings_bytes
-        count = strings_bytes.size
+        byte_sequences = @byte_sequences
+        count = byte_sequences.size
         index = 0
 
         while index < count
-          bytes = strings_bytes[index]
-          return bytes.size if end?(text, start, finish, bytes)
+          bytes = byte_sequences[index]
+          return bytes.size if ends_with?(text, start, finish, bytes)
 
           index += 1
         end
@@ -33,7 +33,7 @@ class UrlExtract
 
       private
 
-      def end?(text, start, finish, bytes)
+      def ends_with?(text, start, finish, bytes)
         size = bytes.size
         string_start = finish - size
         return false if string_start < start

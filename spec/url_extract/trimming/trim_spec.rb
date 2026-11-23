@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 RSpec.describe UrlExtract::Trimming::Trim do
-  subject { url.byteslice(0, kept_size) }
+  subject { text.byteslice(4, kept_finish - 4) }
 
-  # The URL starts at byte 5 of the text, after a character of two bytes.
+  # The URL starts at byte 4 of the text, after a character of two bytes, a comma and a space.
   let(:text) { "я, #{url} and more" }
-  let(:kept_size) { described_class.new(trim:, trim_html_entities:, trim_brackets:).call(text, 4, url.bytesize) }
+  let(:kept_finish) { described_class.new(trim:, trim_html_entities:, trim_brackets:).call(text, 4, 4 + url.bytesize) }
 
   let(:trim) { UrlExtract::DEFAULTS[:trim] }
   let(:trim_html_entities) { true }

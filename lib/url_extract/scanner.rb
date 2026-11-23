@@ -3,7 +3,7 @@
 class UrlExtract
   # Reads the text from its start to its end, and gives each URL to the block, with its byte index.
   #
-  # The time is linear in the length of the text: the scan reads the characters after a start one time.
+  # The time is linear in the length of the text: the scan reads the characters after a prefix one time.
   # It works with byte indexes, and makes one string for each URL: the URL.
   class Scanner # :nodoc: all
     # The characters that RFC 3986 allows in a URL, as the content of a regexp character class:
@@ -27,29 +27,30 @@ class UrlExtract
       @characters = text.ascii_only? ? ASCII_CHARACTERS : CHARACTERS
     end
 
-    def call(&)
-      start = @rules.start
-      return unless start
+    def each_url(&)
+      prefix_regexp = @rules.prefix_regexp
+      return unless prefix_regexp
 
-      scan_url(&) while @scanner.skip_until(start)
+      scan_url(&) while @scanner.skip_until(prefix_regexp)
     end
 
     private
 
     def scan_url
-      start_size = @scanner.matched_size
-      byte_index = @scanner.pos - start_size
+      prefix_finish = @scanner.pos
+      byte_index = prefix_finish - @scanner.matched_size
       rest_size = @scanner.match?(@characters)
       text = @scanner.string
-      size = @rules.trim.call(text, byte_index, start_size + rest_size)
-      return skip_rest(rest_size) if (size <= start_size) || (size > @rules.max_bytesize)
+      finish = @rules.trim.call(text, byte_index, prefix_finish + rest_size)
+      size = finish - byte_index
+      return skip_rest(rest_size) if (finish <= prefix_finish) || (size > @rules.max_bytesize)
 
-      @scanner.pos = byte_index + size
+      @scanner.pos = finish
       yield(text.byteslice(byte_index, size), byte_index)
     end
 
-    # The trim removed each character after the start, or the URL is longer than the limit, so no URL is there.
-    # The scan goes on after these characters. Reading them again for each start in them takes a time
+    # The trim removed each character after the prefix, or the URL is longer than the limit, so no URL is there.
+    # The scan goes on after these characters. Reading them again for each prefix in them takes a time
     # that grows with the square of their count.
     def skip_rest(rest_size)
       @scanner.pos += rest_size
