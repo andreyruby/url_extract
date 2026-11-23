@@ -3,11 +3,11 @@
 class UrlExtract
   module Trimming # :nodoc: all
     # Finds how much of a URL in a text stays, when the end of the URL belongs to the text around it. It removes:
-    # - each string of the list, such as the dot of `See https://a.com/x.`
-    # - with `trim_html_entities`, an HTML entity, such as the `&quot;` of `https://a.com/x&quot;`
+    # - each string of the list, such as the dot of `See https://example.com/x.`
+    # - with `trim_html_entities`, an HTML entity, such as the `&quot;` of `https://example.com/x&quot;`
     # - with `trim_brackets`, a bracket with no partner, as `IndexAfterLastPairedBracket` says:
-    #   the `)` of `(https://a.com/x)` and the `(` of `https://a.com/x( see)`. A bracket with a partner stays,
-    #   as in `https://a.com/x_(y)`.
+    #   the `)` of `(https://example.com/x)` and the `(` of `https://example.com/x( see)`. A bracket with a partner stays,
+    #   as in `https://example.com/x_(y)`.
     #
     # It repeats these until the last character of the URL stays.
     # An HTML entity is one unit: without `trim_html_entities` it stays, and the `;` of the list does not cut its end.
