@@ -13,7 +13,7 @@ Find and extract URLs from plain text:
 ## Usage
 
 ```ruby
-UrlExtract.scan("See https://a.com/x.").map(&:url)
+UrlExtract.scan("See https://a.com/x").map(&:url)
 # => ["https://a.com/x"]
 ```
 
@@ -29,10 +29,10 @@ UrlExtract.("See https://a.com/x, https://b.com/y and https://c.com/z").first(2)
 ```
 
 ```ruby
-UrlExtract.scan("See https://a.com/x.").each do |match|
+UrlExtract.scan("See https://a.com/x").each do |match|
   match.url   # => "https://a.com/x"
   match.range # => 4...19
-  match.text  # => "See https://a.com/x."
+  match.text  # => "See https://a.com/x"
 end
 ```
 
@@ -40,22 +40,23 @@ To replace URLs, always use `reverse_each`. A replacement changes the length of 
 after it; from the last match to the first, each range still points at its URL:
 
 ```ruby
-text = "See https://a.com/x and https://b.com/y."
+text = "See https://a.com/x and https://b.com/y"
 UrlExtract.scan(text).reverse_each do |match|
   text[match.range] = %(<a href="#{match.url}">#{match.url}</a>)
 end
 puts text
-# See <a href="https://a.com/x">https://a.com/x</a> and <a href="https://b.com/y">https://b.com/y</a>.
+# See <a href="https://a.com/x">https://a.com/x</a> and <a href="https://b.com/y">https://b.com/y</a>
 ```
 
 ## Options
 
 The defaults are a great start: try them first, and change an option only when a text needs it.
-The options below are the defaults, so this call is the same as `UrlExtract.scan("See https://a.com/x.")`:
+The options below are the defaults, so this call is the same as `UrlExtract.scan(text)`:
 
 ```ruby
+text = "See https://a.com/x"
 UrlExtract.scan(
-  "See https://a.com/x.",
+  text,
   prefixes: %w[https:// http://],
   max_bytesize: 8000,
   trim: %w[? ! . , : ; * _ ~],
@@ -131,7 +132,7 @@ UrlExtract.scan("Is it https://a.com/x?!").map(&:url)
 # => ["https://a.com/x"]
 
 # Brackets around a URL, and the URL's own brackets
-UrlExtract.scan("(See https://en.wikipedia.org/wiki/Ruby_(programming_language).)").map(&:url)
+UrlExtract.scan("(See https://en.wikipedia.org/wiki/Ruby_(programming_language))").map(&:url)
 # => ["https://en.wikipedia.org/wiki/Ruby_(programming_language)"]
 
 # An HTML entity around a URL
@@ -143,7 +144,7 @@ UrlExtract.scan('<a href="https://a.com/x?a=1&amp;b=2">').map(&:url)
 # => ["https://a.com/x?a=1&amp;b=2"]
 
 # Non-ASCII characters
-UrlExtract.scan("https://ru.wikipedia.org/wiki/Привет!").map(&:url)
+UrlExtract.scan("https://ru.wikipedia.org/wiki/Привет").map(&:url)
 # => ["https://ru.wikipedia.org/wiki/Привет"]
 
 # A space that is not ASCII ends a URL
@@ -151,7 +152,7 @@ UrlExtract.scan("https://a.com/x\u00A0y").map(&:url)
 # => ["https://a.com/x"]
 
 # An IP address or localhost as the host
-UrlExtract.scan("Open http://127.0.0.1:8080/x, http://[::1]:3000/ or http://localhost:3000.").map(&:url)
+UrlExtract.scan("Open http://127.0.0.1:8080/x, http://[::1]:3000/ or http://localhost:3000").map(&:url)
 # => ["http://127.0.0.1:8080/x", "http://[::1]:3000/", "http://localhost:3000"]
 
 # A scheme in capital letters
@@ -175,7 +176,7 @@ UrlExtract.scan("https://a.com https://b.com https://c.com").first(2).map(&:url)
 # => ["https://a.com", "https://b.com"]
 
 # A text in another encoding: the range in that text
-UrlExtract.scan("Привет https://a.com/путь.".encode(Encoding::Windows_1251)).first.range
+UrlExtract.scan("Привет https://a.com/путь".encode(Encoding::Windows_1251)).first.range
 # => 7...25
 
 # A text with an invalid byte: no match, and a warning

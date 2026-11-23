@@ -7,7 +7,7 @@ require_relative "url_extract/version"
 # Finds each URL in a plain text, with its place in the text:
 #
 # ```ruby
-# UrlExtract.scan("See https://a.com/x. And https://a.com/x").map(&:url)
+# UrlExtract.scan("See https://a.com/x and https://a.com/x").map(&:url)
 # # => ["https://a.com/x", "https://a.com/x"]
 # ```
 #
@@ -73,7 +73,7 @@ class UrlExtract
   # It reads the text only as far as a method of `Enumerable` asks: `first(2)` reads it up to the second URL:
   #
   # ```ruby
-  # extractor = UrlExtract.scan("See https://a.com/x, https://b.com/y and https://c.com/z.")
+  # extractor = UrlExtract.scan("See https://a.com/x, https://b.com/y and https://c.com/z")
   # extractor.map(&:url)          # => ["https://a.com/x", "https://b.com/y", "https://c.com/z"]
   # extractor.first(2).map(&:url) # => ["https://a.com/x", "https://b.com/y"]
   # ```
@@ -81,7 +81,7 @@ class UrlExtract
   # `UrlExtract.(text)` is the same:
   #
   # ```ruby
-  # UrlExtract.("See https://a.com/x.").map(&:url) # => ["https://a.com/x"]
+  # UrlExtract.("See https://a.com/x").map(&:url) # => ["https://a.com/x"]
   # ```
   #
   # Each option has its default in `DEFAULTS`.
@@ -143,7 +143,7 @@ class UrlExtract
   # of the calling code. The second line of each message is a hint of what to provide:
   #
   # ```ruby
-  # UrlExtract.scan("See https://a.com/x.", trim: ".")
+  # UrlExtract.scan("See https://a.com/x", trim: ".")
   # # ArgumentError: Invalid value for trim: "." provided
   # # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
   # ```
@@ -197,7 +197,7 @@ class UrlExtract
   # Returns a string that shows the start of the text, and not the rules of the options:
   #
   # ```ruby
-  # UrlExtract.scan("See https://a.com/x.") # => #<UrlExtract text="See https://a.com/x.">
+  # UrlExtract.scan("See https://a.com/x") # => #<UrlExtract text="See https://a.com/x">
   # ```
   #
   # A text that the extractor can not read shows as nil:
