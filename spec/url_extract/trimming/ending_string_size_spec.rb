@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe UrlExtract::Trimming::LongStringEnd do
+RSpec.describe UrlExtract::Trimming::EndingStringSize do
   subject { described_class.new(strings).call(text, 0, text.bytesize) }
 
   let(:strings) { %w[... »] }
