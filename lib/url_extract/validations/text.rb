@@ -16,13 +16,13 @@ class UrlExtract
               error_class: TypeError)
           end
 
-          unreadable("text", text, invalid_index(text)) unless text.valid_encoding?
+          fail_unreadable("text", text, invalid_index(text)) unless text.valid_encoding?
         end
 
         # A string of the options: the extractor compares its bytes with the bytes of a UTF-8 text.
         def check_utf8(label, string)
-          unreadable(label, string, invalid_index(string)) unless string.valid_encoding?
-          unreadable(label, string) unless utf8?(string)
+          fail_unreadable(label, string, invalid_index(string)) unless string.valid_encoding?
+          fail_unreadable(label, string) unless utf8?(string)
         end
 
         # The extractor reads UTF-8. A text of ASCII characters only reads the same in each encoding
@@ -36,7 +36,7 @@ class UrlExtract
         # an invalid byte, a byte that is no character, or an encoding that the extractor can not convert.
         # The index is the index of the character at fault, when one character is at fault.
         # `Input::Encodings` raises its errors here too.
-        def unreadable(label, string, index = nil)
+        def fail_unreadable(label, string, index = nil)
           details = "encoding #{string.encoding}"
           details += ", index #{index}" if index
           Failure.fail_with("Invalid #{label}: can not be read as UTF-8 (#{details})", "Provide a valid UTF-8 string",

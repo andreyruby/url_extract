@@ -20,20 +20,19 @@ class UrlExtract
 
       def initialize(trim:, trim_html_entities:, trim_brackets:)
         one_byte_strings, multibyte_strings = trim.partition { |string| string.bytesize == 1 }
-        @string_bytes = byte_table(one_byte_strings.map(&:ord))
-        @bracket_bytes = byte_table(trim_brackets ? BRACKETS.bytes : [])
-        @html_entities = trim_html_entities
+        @one_byte_table = byte_table(one_byte_strings.map(&:ord))
+        @bracket_table = byte_table(trim_brackets ? BRACKETS.bytes : [])
+        @trim_html_entities = trim_html_entities
         @ending_string_size = EndingStringSize.new(multibyte_strings)
         freeze
       end
 
-      # Returns the count of the bytes that stay, of the `size` bytes of the URL at `byte_index` of the text.
-      def call(text, byte_index, size)
-        finish = byte_index + size
-        kept_finish = strip(text, byte_index, finish)
-        kept_finish = strip_brackets(text, byte_index, kept_finish) if bracket_end?(text, byte_index, kept_finish)
+      # Returns the end of the URL that stays, of the URL that is the bytes of the text from `start` to `finish`.
+      def call(text, start, finish)
+        finish = strip(text, start, finish)
+        finish = strip_brackets(text, start, finish) if ends_with_bracket?(text, start, finish)
 
-        kept_finish - byte_index
+        finish
       end
 
       private
@@ -48,40 +47,42 @@ class UrlExtract
       # Returns the new end of the URL.
       # The loops of this class are `while` loops: a `return` out of a `loop` block makes an object.
       def strip(text, start, finish)
-        removed_size = removed_size(text, start, finish)
+        ending_size = ending_size(text, start, finish)
 
-        until removed_size.zero?
-          finish -= removed_size
-          removed_size = removed_size(text, start, finish)
+        until ending_size.zero?
+          finish -= ending_size
+          ending_size = ending_size(text, start, finish)
         end
 
         finish
       end
 
-      def bracket_end?(text, start, finish)
-        (finish > start) && @bracket_bytes[text.getbyte(finish - 1)]
+      def ends_with_bracket?(text, start, finish)
+        (finish > start) && @bracket_table[text.getbyte(finish - 1)]
       end
 
       # Removes each bracket with no partner at the end of the URL, and what `strip` removes before it.
       # Each bracket after the last closing bracket with a partner has no partner.
       def strip_brackets(text, start, finish)
         after_last_pair = IndexAfterLastPairedBracket.call(text, start, finish)
-        finish = strip(text, start, finish - 1) while (finish > after_last_pair) && bracket_end?(text, start, finish)
+        while (finish > after_last_pair) && ends_with_bracket?(text, start, finish)
+          finish = strip(text, start, finish - 1)
+        end
 
         finish
       end
 
       # Returns the count of the bytes to remove from the end of the URL, or 0.
-      def removed_size(text, start, finish)
+      def ending_size(text, start, finish)
         return 0 if finish == start
 
         entity_size = EndingEntitySize.call(text, start, finish)
-        return (@html_entities ? entity_size : 0) if entity_size.positive?
+        return (@trim_html_entities ? entity_size : 0) if entity_size.positive?
 
         string_size = @ending_string_size.call(text, start, finish)
         return string_size if string_size.positive?
 
-        @string_bytes[text.getbyte(finish - 1)] ? 1 : 0
+        @one_byte_table[text.getbyte(finish - 1)] ? 1 : 0
       end
     end
   end

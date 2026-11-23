@@ -10,13 +10,15 @@ class UrlExtract
     #   # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
     class Options # :nodoc: all
       ON_ENCODING_ERROR = %i[warn skip raise].freeze
+      # The private method that checks each option: `check_` and the name of the option.
+      CHECK_METHODS = DEFAULTS.keys.to_h { |name| [name, :"check_#{name}"] }.freeze
 
       class << self
         def check(options)
           check_names(options.keys)
 
-          # Each option has a private method of its name, and `check_names` lets only these names through.
-          options.each { |name, value| send(name, value) }
+          # `check_names` lets only the names of `CHECK_METHODS` through.
+          options.each { |name, value| send(CHECK_METHODS[name], value) }
         end
 
         private
@@ -30,7 +32,7 @@ class UrlExtract
             "Allowed options: #{DEFAULTS.keys.map(&:inspect).join(", ")}")
         end
 
-        def prefixes(prefixes)
+        def check_prefixes(prefixes)
           check_array(:prefixes, prefixes)
 
           prefixes.each do |prefix|
@@ -46,23 +48,23 @@ class UrlExtract
           end
         end
 
-        def max_bytesize(max_bytesize)
+        def check_max_bytesize(max_bytesize)
           return if max_bytesize.nil? || (max_bytesize.is_a?(Integer) && max_bytesize.positive?)
 
           Failure.fail_with("Invalid value for max_bytesize: #{Failure.show(max_bytesize)} provided",
             "Provide a positive integer like #{DEFAULTS[:max_bytesize]}, or nil for no limit")
         end
 
-        def trim(trim)
+        def check_trim(trim)
           check_array(:trim, trim)
           trim.each { |string| check_string("trim string", string, '"."') }
         end
 
-        def trim_html_entities(value) = check_boolean(:trim_html_entities, value)
+        def check_trim_html_entities(value) = check_boolean(:trim_html_entities, value)
 
-        def trim_brackets(value) = check_boolean(:trim_brackets, value)
+        def check_trim_brackets(value) = check_boolean(:trim_brackets, value)
 
-        def on_encoding_error(value)
+        def check_on_encoding_error(value)
           return if ON_ENCODING_ERROR.include?(value)
 
           Failure.fail_with("Invalid value for on_encoding_error: #{Failure.show(value)} provided",
