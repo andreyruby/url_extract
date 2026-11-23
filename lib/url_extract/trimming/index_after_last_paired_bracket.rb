@@ -17,7 +17,7 @@ class UrlExtract
     #
     # It reads the bytes of the URL one time, and keeps one count for each kind of bracket.
     # Thus the time is linear, and it makes no object.
-    class PairedBracketEnd # :nodoc: all
+    class IndexAfterLastPairedBracket # :nodoc: all
       ROUND_OPENING = "(".ord
       ROUND_CLOSING = ")".ord
       SQUARE_OPENING = "[".ord
@@ -29,7 +29,7 @@ class UrlExtract
         # The counts are locals of one method: an array or an object for them costs an allocation for each URL.
         def call(text, start, finish)
           round_count = square_count = curly_count = 0
-          paired_end = start
+          after_last_pair = start
           index = start
 
           while index < finish
@@ -40,24 +40,24 @@ class UrlExtract
             when ROUND_CLOSING
               if round_count.positive?
                 round_count -= 1
-                paired_end = index + 1
+                after_last_pair = index + 1
               end
             when SQUARE_CLOSING
               if square_count.positive?
                 square_count -= 1
-                paired_end = index + 1
+                after_last_pair = index + 1
               end
             when CURLY_CLOSING
               if curly_count.positive?
                 curly_count -= 1
-                paired_end = index + 1
+                after_last_pair = index + 1
               end
             end
 
             index += 1
           end
 
-          paired_end
+          after_last_pair
         end
       end
     end

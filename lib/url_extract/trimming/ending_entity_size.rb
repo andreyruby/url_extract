@@ -10,7 +10,7 @@ class UrlExtract
     # The names of HTML are in https://html.spec.whatwg.org/multipage/named-characters.html
     #
     # It reads the bytes from the end of the URL, and makes no object.
-    class EntityEnd # :nodoc: all
+    class EndingEntitySize # :nodoc: all
       SEMICOLON = ";".ord
       AMPERSAND = "&".ord
       NUMBER_SIGN = "#".ord

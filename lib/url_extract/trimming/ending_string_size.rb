@@ -7,7 +7,7 @@ class UrlExtract
     # When more than one string ends the URL, it takes the longest.
     #
     # It compares the bytes of each string with the last bytes of the URL, and makes no object.
-    class LongStringEnd # :nodoc: all
+    class EndingStringSize # :nodoc: all
       def initialize(strings)
         longest_first_strings = strings.sort_by { |string| -string.bytesize }
         @strings_bytes = longest_first_strings.map { |string| string.bytes.freeze }.freeze
