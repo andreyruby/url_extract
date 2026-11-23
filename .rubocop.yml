@@ -57,11 +57,6 @@ RSpec/VerifiedDoubles:
 RSpec/NamedSubject:
   Enabled: false
 
-# Rules keeps the rules of each set of options in a frozen hash of the
-# class, and replaces the hash to add rules
-ThreadSafety/ClassInstanceVariable:
-  Enabled: false
-
 # `UrlExtract.(text)` is a documented form of `UrlExtract.scan(text)`
 Style/LambdaCall:
   Enabled: false

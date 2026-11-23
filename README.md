@@ -7,6 +7,7 @@ Find and extract URLs from plain text:
 - Keeps only paired brackets
 - Gives the position of each URL
 - Reads localhost and IP URLs
+- Thread-safe and Ractor-ready
 - Linear time, no dependencies
 
 ## Usage

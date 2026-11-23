@@ -6,7 +6,7 @@ class UrlExtract
     # `:raise` raises the error, `:warn` warns at the line of the caller, and `:skip` says nothing.
     class EncodingErrorPolicy # :nodoc: all
       # The start of the path of each file of the gem. A warning names the first line outside them: the caller's.
-      SOURCE_PATH = File.expand_path("..", __dir__)
+      SOURCE_PATH = File.expand_path("..", __dir__).freeze
 
       class << self
         def apply(error, policy)

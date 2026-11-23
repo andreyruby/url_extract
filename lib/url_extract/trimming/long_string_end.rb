@@ -10,7 +10,8 @@ class UrlExtract
     class LongStringEnd # :nodoc: all
       def initialize(strings)
         longest_first_strings = strings.sort_by { |string| -string.bytesize }
-        @strings_bytes = longest_first_strings.map(&:bytes)
+        @strings_bytes = longest_first_strings.map { |string| string.bytes.freeze }.freeze
+        freeze
       end
 
       # The URL is the bytes of the text from `start` to `finish`.
