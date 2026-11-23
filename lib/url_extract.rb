@@ -7,8 +7,8 @@ require_relative "url_extract/version"
 # Finds each URL in a plain text, with its place in the text:
 #
 # ```ruby
-# UrlExtract.scan("See https://a.com/x and https://a.com/x").map(&:url)
-# # => ["https://a.com/x", "https://a.com/x"]
+# UrlExtract.scan("See https://example.com/x and https://example.com/x").map(&:url)
+# # => ["https://example.com/x", "https://example.com/x"]
 # ```
 #
 # The URLs are raw: each URL as the text writes it, at each place, so a URL can come more than one time.
@@ -40,8 +40,8 @@ class UrlExtract
   # and warns, and with `:skip` it gives no match and says nothing:
   #
   # ```ruby
-  # UrlExtract.scan("See https://a.com/x \xFF", on_encoding_error: :raise)
-  # # UrlExtract::EncodingError: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 20)
+  # UrlExtract.scan("See https://example.com/x \xFF", on_encoding_error: :raise)
+  # # UrlExtract::EncodingError: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 26)
   # # [hint] Provide a valid UTF-8 string
   # ```
   #
@@ -73,15 +73,15 @@ class UrlExtract
   # It reads the text only as far as a method of `Enumerable` asks: `first(2)` reads it up to the second URL:
   #
   # ```ruby
-  # extractor = UrlExtract.scan("See https://a.com/x, https://b.com/y and https://c.com/z")
-  # extractor.map(&:url)          # => ["https://a.com/x", "https://b.com/y", "https://c.com/z"]
-  # extractor.first(2).map(&:url) # => ["https://a.com/x", "https://b.com/y"]
+  # extractor = UrlExtract.scan("See https://example.com/x, https://example.org/y and https://example.net/z")
+  # extractor.map(&:url)          # => ["https://example.com/x", "https://example.org/y", "https://example.net/z"]
+  # extractor.first(2).map(&:url) # => ["https://example.com/x", "https://example.org/y"]
   # ```
   #
   # `UrlExtract.(text)` is the same:
   #
   # ```ruby
-  # UrlExtract.("See https://a.com/x").map(&:url) # => ["https://a.com/x"]
+  # UrlExtract.("See https://example.com/x").map(&:url) # => ["https://example.com/x"]
   # ```
   #
   # Each option has its default in `DEFAULTS`.
@@ -90,43 +90,43 @@ class UrlExtract
   # such as `www.`, starts a URL only at the start of a word, before a letter or a digit:
   #
   # ```ruby
-  # text = "See www.a.com, localhost:3000/x and https://a.com/x"
+  # text = "See www.example.com, localhost:3000/x and https://example.com/x"
   # UrlExtract.scan(text, prefixes: %w[www. localhost: https://]).map(&:url)
-  # # => ["www.a.com", "localhost:3000/x", "https://a.com/x"]
+  # # => ["www.example.com", "localhost:3000/x", "https://example.com/x"]
   # ```
   #
   # With `max_bytesize:`, the largest size of a URL, in bytes. A longer URL gives no match, and no match
   # for a part of it. `nil` sets no limit:
   #
   # ```ruby
-  # text = "See https://a.com/x and https://a.com/very/long/path"
-  # UrlExtract.scan(text, max_bytesize: 20).map(&:url)  # => ["https://a.com/x"]
-  # UrlExtract.scan(text, max_bytesize: nil).map(&:url) # => ["https://a.com/x", "https://a.com/very/long/path"]
+  # text = "See https://example.com/x and https://example.com/very/long/path"
+  # UrlExtract.scan(text, max_bytesize: 25).map(&:url)  # => ["https://example.com/x"]
+  # UrlExtract.scan(text, max_bytesize: nil).map(&:url) # => ["https://example.com/x", "https://example.com/very/long/path"]
   # ```
   #
   # With `trim:`, the strings to remove from the end of a URL. `[]` removes nothing:
   #
   # ```ruby
-  # UrlExtract.scan("See https://a.com/x.", trim: []).map(&:url)                # => ["https://a.com/x."]
-  # UrlExtract.scan("See https://a.com/x...»", trim: ["...", "»"]).map(&:url) # => ["https://a.com/x"]
+  # UrlExtract.scan("See https://example.com/x.", trim: []).map(&:url)              # => ["https://example.com/x."]
+  # UrlExtract.scan("See https://example.com/x...»", trim: ["...", "»"]).map(&:url) # => ["https://example.com/x"]
   # ```
   #
   # With `trim_html_entities: true`, removes an HTML entity from the end of a URL, such as `&quot;`, `&#39;`
   # or `&#x27;`. An entity is one unit: the `;` of the `trim` list does not cut its end. `false` keeps it:
   #
   # ```ruby
-  # text = "<p>&quot;https://a.com/x&quot;</p>"
-  # UrlExtract.scan(text).map(&:url)                            # => ["https://a.com/x"]
-  # UrlExtract.scan(text, trim_html_entities: false).map(&:url) # => ["https://a.com/x&quot;"]
+  # text = "<p>&quot;https://example.com/x&quot;</p>"
+  # UrlExtract.scan(text).map(&:url)                            # => ["https://example.com/x"]
+  # UrlExtract.scan(text, trim_html_entities: false).map(&:url) # => ["https://example.com/x&quot;"]
   # ```
   #
   # With `trim_brackets: true`, removes from the end of a URL a closing bracket that the URL does not open,
   # and an opening bracket that the URL does not close. `false` removes no bracket:
   #
   # ```ruby
-  # UrlExtract.scan("(See https://a.com/x) and https://en.wikipedia.org/wiki/Ruby_(programming_language)").map(&:url)
-  # # => ["https://a.com/x", "https://en.wikipedia.org/wiki/Ruby_(programming_language)"]
-  # UrlExtract.scan("(See https://a.com/x)", trim_brackets: false).map(&:url) # => ["https://a.com/x)"]
+  # UrlExtract.scan("(See https://example.com/x) and https://en.wikipedia.org/wiki/Ruby_(programming_language)").map(&:url)
+  # # => ["https://example.com/x", "https://en.wikipedia.org/wiki/Ruby_(programming_language)"]
+  # UrlExtract.scan("(See https://example.com/x)", trim_brackets: false).map(&:url) # => ["https://example.com/x)"]
   # ```
   #
   # With `on_encoding_error:`, what a text that the extractor can not read as UTF-8 does. It gives no match,
@@ -134,16 +134,16 @@ class UrlExtract
   # `UrlExtract::EncodingError` instead:
   #
   # ```ruby
-  # UrlExtract.scan("See https://a.com/x \xFF").to_a                           # => []
-  # # warning: url_extract: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 20)
-  # UrlExtract.scan("See https://a.com/x \xFF", on_encoding_error: :skip).to_a # => []
+  # UrlExtract.scan("See https://example.com/x \xFF").to_a                           # => []
+  # # warning: url_extract: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 26)
+  # UrlExtract.scan("See https://example.com/x \xFF", on_encoding_error: :skip).to_a # => []
   # ```
   #
   # A wrong option raises `ArgumentError`, and a text that is not a string raises `TypeError`: they are bugs
   # of the calling code. The second line of each message is a hint of what to provide:
   #
   # ```ruby
-  # UrlExtract.scan("See https://a.com/x", trim: ".")
+  # UrlExtract.scan("See https://example.com/x", trim: ".")
   # # ArgumentError: Invalid value for trim: "." provided
   # # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
   # ```
@@ -171,15 +171,15 @@ class UrlExtract
   # With a block given, calls the block with each match, when the extractor finds it; returns `self`:
   #
   # ```ruby
-  # UrlExtract.scan("See https://a.com/x and https://b.com/y").each { |match| p match.url }
-  # # => "https://a.com/x"
-  # # => "https://b.com/y"
+  # UrlExtract.scan("See https://example.com/x and https://example.org/y").each { |match| p match.url }
+  # # => "https://example.com/x"
+  # # => "https://example.org/y"
   # ```
   #
   # With no block given, returns an enumerator:
   #
   # ```ruby
-  # UrlExtract.scan("See https://a.com/x and https://b.com/y").each.next.url # => "https://a.com/x"
+  # UrlExtract.scan("See https://example.com/x and https://example.org/y").each.next.url # => "https://example.com/x"
   # ```
   #
   # Each call reads the text again: call `to_a` to keep the matches.
@@ -197,7 +197,7 @@ class UrlExtract
   # Returns a string that shows the start of the text, and not the rules of the options:
   #
   # ```ruby
-  # UrlExtract.scan("See https://a.com/x") # => #<UrlExtract text="See https://a.com/x">
+  # UrlExtract.scan("See https://example.com/x") # => #<UrlExtract text="See https://example.com/x">
   # ```
   #
   # A text that the extractor can not read shows as nil:
