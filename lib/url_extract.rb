@@ -72,8 +72,12 @@ require_relative "url_extract/version"
 class UrlExtract
   include Enumerable
 
-  # The error of a text, or of a string of the options, that the extractor can not read as UTF-8:
-  # an invalid byte, a byte that is no character, or an encoding that the extractor can not convert.
+  # The error of a text that the extractor can not read as UTF-8: an invalid byte, a byte that is no character,
+  # or an encoding that the extractor can not convert.
+  #
+  # It raises only with `on_encoding_error: :raise`. With the default, `:warn`, such a text gives no match
+  # and warns, and with `:skip` it gives no match and says nothing.
+  #
   # It is an `ArgumentError`, as Ruby raises for an invalid byte. It is not Ruby's `::EncodingError`.
   class EncodingError < ArgumentError; end
 

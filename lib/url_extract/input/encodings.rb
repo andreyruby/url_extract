@@ -24,16 +24,16 @@ class UrlExtract
         def utf8_copy(text)
           encoding = text.encoding
           if encoding == Encoding::BINARY
-            Validations::Text.fail_unreadable("text", text, text.each_char.find_index { |byte| !byte.ascii_only? })
+            Validations::Text.fail_unreadable(text, text.each_char.find_index { |byte| !byte.ascii_only? })
           end
-          Validations::Text.fail_unreadable("text", text) if encoding.dummy?
+          Validations::Text.fail_unreadable(text) if encoding.dummy?
 
           text.encode(Encoding::UTF_8).freeze
         rescue Encoding::ConverterNotFoundError
-          Validations::Text.fail_unreadable("text", text)
+          Validations::Text.fail_unreadable(text)
         rescue Encoding::UndefinedConversionError => error
           index = text.each_char.find_index { |character| character == error.error_char }
-          Validations::Text.fail_unreadable("text", text, index)
+          Validations::Text.fail_unreadable(text, index)
         end
       end
 

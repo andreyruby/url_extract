@@ -89,7 +89,16 @@ class UrlExtract
             Failure.fail_with("Invalid #{label}: #{Failure.show(string)} provided",
               "Provide a non-empty string like #{example}")
           end
-          Text.check_utf8(label, string)
+          return if utf8?(string)
+
+          Failure.fail_with("Invalid #{label}: #{Failure.show(string)} provided", "Provide a UTF-8 string")
+        end
+
+        # The extractor compares the bytes of the string with the bytes of a UTF-8 text: a string in another
+        # encoding, such as `"»"` in Windows-1251, would cut a byte of a character from the end of a URL.
+        # A string of ASCII characters only reads the same in each encoding that is compatible with ASCII.
+        def utf8?(string)
+          string.valid_encoding? && ((string.encoding == Encoding::UTF_8) || string.ascii_only?)
         end
       end
     end

@@ -45,20 +45,6 @@ RSpec.describe UrlExtract::Validations::Options do
         expect(error(prefixes: [""])).to eq "Invalid prefix: \"\" provided\n#{hint}"
       end
 
-      it "raises an error for a prefix with an invalid byte or in another encoding" do
-        expect(error(prefixes: ["a\xFF://"])).to eq "Invalid prefix: can not be read as UTF-8 (encoding UTF-8, index 1)\n[hint] Provide a valid UTF-8 string"
-        expect(error(prefixes: ["магазин.".encode(Encoding::Windows_1251)]))
-          .to eq "Invalid prefix: can not be read as UTF-8 (encoding Windows-1251)\n[hint] Provide a valid UTF-8 string"
-        expect(error(prefixes: ["https://".encode(Encoding::UTF_16LE)]))
-          .to eq "Invalid prefix: can not be read as UTF-8 (encoding UTF-16LE)\n[hint] Provide a valid UTF-8 string"
-      end
-
-      it "raises an encoding error, which is an argument error" do
-        expect { described_class.check(trim: ["\xFF"]) }.to raise_error(UrlExtract::EncodingError) { |error|
-          expect(error).to be_an ArgumentError
-        }
-      end
-
       it "takes ASCII characters only in another encoding" do
         expect { described_class.check(prefixes: ["https://".b]) }.not_to raise_error
       end
@@ -92,6 +78,12 @@ RSpec.describe UrlExtract::Validations::Options do
 
         expect(error(trim: [".", 1])).to eq "Invalid trim string: 1 provided\n#{hint}"
         expect(error(trim: [""])).to eq "Invalid trim string: \"\" provided\n#{hint}"
+      end
+
+      it "raises an error for a string that is not UTF-8, as its bytes would cut a character of a URL" do
+        expect(error(trim: ["\xFF"])).to eq "Invalid trim string: \"\\xFF\" provided\n[hint] Provide a UTF-8 string"
+        expect(error(trim: ["»".encode(Encoding::Windows_1251)]))
+          .to eq "Invalid trim string: \"\\xBB\" provided\n[hint] Provide a UTF-8 string"
       end
     end
 
