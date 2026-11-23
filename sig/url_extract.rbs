@@ -3,10 +3,6 @@ class UrlExtract
 
   VERSION: String
 
-  TRIM: Array[String]
-
-  MAX_BYTESIZE: Integer
-
   DEFAULTS: Hash[Symbol, untyped]
 
   class EncodingError < ArgumentError

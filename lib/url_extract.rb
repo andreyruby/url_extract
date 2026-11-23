@@ -72,13 +72,6 @@ require_relative "url_extract/version"
 class UrlExtract
   include Enumerable
 
-  # The list of the "Autolinks (extension)" part of the GitHub Flavored Markdown Spec, with `;`:
-  # https://github.github.com/gfm/#autolinks-extension-
-  TRIM = %w[? ! . , : ; * _ ~].freeze
-  # RFC 9110 recommends that HTTP software supports a URL of at least 8000 bytes:
-  # https://www.rfc-editor.org/rfc/rfc9110#section-4.1
-  MAX_BYTESIZE = 8000
-
   # The error of a text, or of a string of the options, that the extractor can not read as UTF-8:
   # an invalid byte, a byte that is no character, or an encoding that the extractor can not convert.
   # It is an `ArgumentError`, as Ruby raises for an invalid byte. It is not Ruby's `::EncodingError`.
@@ -87,8 +80,12 @@ class UrlExtract
   # The default options of an extractor. `UrlExtract` describes each option.
   DEFAULTS = {
     prefixes: %w[https:// http://].freeze,
-    max_bytesize: MAX_BYTESIZE,
-    trim: TRIM,
+    # RFC 9110 recommends that HTTP software supports a URL of at least 8000 bytes:
+    # https://www.rfc-editor.org/rfc/rfc9110#section-4.1
+    max_bytesize: 8000,
+    # The list of the "Autolinks (extension)" part of the GitHub Flavored Markdown Spec, with `;`:
+    # https://github.github.com/gfm/#autolinks-extension-
+    trim: %w[? ! . , : ; * _ ~].freeze,
     trim_html_entities: true,
     trim_brackets: true,
     on_encoding_error: :warn
