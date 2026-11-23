@@ -6,24 +6,21 @@ class UrlExtract
   # - max_bytesize: the largest size of a URL, in bytes, or infinity
   # - trim: the `Trimming::Trim` of the trim options
   # - on_encoding_error: what a text that the extractor can not read does
+  #
+  # The rules are frozen, as each part of them, so threads and Ractors can share them.
   Rules = Data.define(:start, :max_bytesize, :trim, :on_encoding_error)
 
   class Rules # :nodoc: all
-    @cache = {}.freeze
-
     class << self
-      # Returns the rules for the options. It builds the rules of each set of options one time,
-      # because the build compiles a regexp, and costs more than the scan of a short text.
-      #
-      # It keeps the rules in a frozen hash, and replaces the hash to add rules, so threads
-      # read it with no lock. Two threads that add rules at one time can build the same rules twice.
-      def cached(options)
-        @cache[options] || begin
-          Validations::Options.check(options)
-          rules = build(**DEFAULTS, **options)
-          @cache = @cache.merge(options => rules).freeze
-          rules
-        end
+      # Returns the rules for the options. The rules of the default options are built one time, when the file loads.
+      # Other options build their rules for each extractor: the build compiles a regexp, which costs
+      # a few microseconds, about the scan of a short text. The class keeps no other rules, so it has no state
+      # that threads or Ractors share.
+      def from(options)
+        return DEFAULT if options.empty?
+
+        Validations::Options.check(options)
+        build(**DEFAULTS, **options)
       end
 
       # Each option is present.
@@ -43,7 +40,7 @@ class UrlExtract
         starts = prefixes.map { |prefix| prefix_start(prefix) }
         source = starts.join("|")
 
-        Regexp.new(source, Regexp::IGNORECASE) if starts.any?
+        Regexp.new(source, Regexp::IGNORECASE).freeze if starts.any?
       end
 
       # A prefix with `://` starts a URL at each place. Another start, such as `www.`, starts a URL
@@ -54,5 +51,8 @@ class UrlExtract
         prefix.end_with?("://") ? escaped_prefix : "(?<![[:alnum:]])#{escaped_prefix}(?=[a-z0-9])"
       end
     end
+
+    # The rules of the default options. Built here, as `Trimming` loads before this file.
+    DEFAULT = build(**DEFAULTS)
   end
 end

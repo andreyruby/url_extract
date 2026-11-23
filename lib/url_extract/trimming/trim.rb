@@ -24,6 +24,7 @@ class UrlExtract
         @bracket_bytes = byte_table(trim_brackets ? BRACKETS.bytes : [])
         @html_entities = trim_html_entities
         @long_string_end = LongStringEnd.new(long_strings)
+        freeze
       end
 
       # Returns the count of the bytes that stay, of the `size` bytes of the URL at `byte_index` of the text.
@@ -40,7 +41,7 @@ class UrlExtract
       def byte_table(bytes)
         table = Array.new(256, false)
         bytes.each { |byte| table[byte] = true }
-        table
+        table.freeze
       end
 
       # Removes each string of the list, and each HTML entity, at the end of the URL.

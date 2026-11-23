@@ -25,7 +25,10 @@ require_relative "url_extract/version"
 #   extractor.first(3)                        # the first 3 matches: it reads the text up to the third
 #   extractor.map(&:url)
 #
-# The class builds the rules of each set of options one time, so a new extractor for each text costs little.
+# The class builds the rules of the default options one time, so a new extractor for each text costs little.
+# An extractor with other options builds its rules, which costs a few microseconds.
+# The class and each extractor are thread-safe, and each Ractor can use the class: the rules are frozen,
+# and each call of `each` reads the text with a scanner of its own.
 #
 # A match has:
 # - url: the URL as the text writes it. In HTML it can hold a character reference, such as `&amp;`.
@@ -109,7 +112,7 @@ class UrlExtract
   # A text that the extractor can not read as UTF-8 gives no match: `on_encoding_error` says whether it also
   # warns (`:warn`), says nothing (`:skip`), or raises (`:raise`).
   def initialize(text, **options)
-    @reader = Input::Reader.new(text, Rules.cached(options))
+    @reader = Input::Reader.new(text, Rules.from(options))
   end
 
   # Gives each match to the block when the extractor finds it. With no block, returns an enumerator.
@@ -132,7 +135,6 @@ class UrlExtract
 end
 
 require_relative "url_extract/match"
-require_relative "url_extract/rules"
 require_relative "url_extract/scanner"
 require_relative "url_extract/input/encoding_error_policy"
 require_relative "url_extract/input/reader"
@@ -144,5 +146,5 @@ require_relative "url_extract/validations/failure"
 require_relative "url_extract/validations/options"
 require_relative "url_extract/validations/text"
 
-# Builds the rules of the default options when the file loads, so no extractor waits for them.
-UrlExtract::Rules.cached({})
+# Last: it builds the rules of the default options with the classes above.
+require_relative "url_extract/rules"

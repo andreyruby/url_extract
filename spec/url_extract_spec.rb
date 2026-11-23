@@ -132,13 +132,11 @@ RSpec.describe UrlExtract do
       expect(subject.to_a).to match [have_attributes(url: "www.a.com/x)", range: 5...17)]
     end
 
-    it "builds the rules of the options one time" do
+    it "builds the rules of the options, and no rules for the default options" do
       allow(UrlExtract::Rules).to receive(:build).and_call_original
-      first_options = {prefixes: %w[http://], trim: %w[!]}
-      second_options = {prefixes: %w[http://], trim: %w[!]}
 
-      described_class.new(text, **first_options)
-      described_class.new("http://a.com", **second_options)
+      described_class.new(text, **options)
+      described_class.new(text)
 
       expect(UrlExtract::Rules).to have_received(:build).once
     end
@@ -544,6 +542,63 @@ RSpec.describe UrlExtract do
 
     it "shows nil for a text that it can not read" do
       expect(described_class.scan("\xFF", on_encoding_error: :skip).inspect).to eq "#<UrlExtract text=nil>"
+    end
+  end
+
+  context "when it runs in a Ractor" do
+    around do |example|
+      experimental = Warning[:experimental]
+      Warning[:experimental] = false
+      example.run
+    ensure
+      Warning[:experimental] = experimental
+    end
+
+    before { skip "Ractor runs on CRuby only" unless RUBY_ENGINE == "ruby" }
+
+    # A Ractor block reaches no method of the example group, so it gets the class as an argument.
+    def in_ractor(*args, &)
+      result(Ractor.new(described_class, *args, &))
+    end
+
+    def result(ractor)
+      ractor.respond_to?(:value) ? ractor.value : ractor.take
+    end
+
+    it "finds the URLs, with the default options and with others, and reads another encoding" do
+      expect(in_ractor { |extract| extract.scan("See https://a.com/x.").map(&:url) }).to eq ["https://a.com/x"]
+      expect(in_ractor { |extract| extract.scan("See www.a.com, www.b.com", prefixes: %w[www.]).map(&:url) })
+        .to eq ["www.a.com", "www.b.com"]
+      expect(in_ractor { |extract| extract.scan("Я https://a.com/я".encode(Encoding::Windows_1251)).map(&:range) })
+        .to eq [2...17]
+    end
+
+    it "raises an error of the options, and warns at the line of the caller" do
+      error = in_ractor do |extract|
+        extract.scan("x", trim: ".")
+      rescue ArgumentError => e
+        e.message
+      end
+
+      expect(error).to start_with "Invalid value for trim"
+      expect { in_ractor { |extract| extract.scan("a\xFF").to_a } }
+        .to output(/\A#{Regexp.escape(__FILE__)}:\d+: warning: url_extract: Invalid text/).to_stderr_from_any_process
+    end
+
+    it "runs in several Ractors at once, each with other options" do
+      ractors = Array.new(4) do |number|
+        Ractor.new(described_class, number) do |extract, index|
+          Array.new(200) { extract.scan("See https://a.com/#{index}. www.b.com/#{index}", prefixes: %w[https:// www.]) }
+            .map { |extractor| extractor.map(&:url) }.uniq
+        end
+      end
+
+      expect(ractors.map { |ractor| result(ractor) })
+        .to eq(Array.new(4) { |index| [["https://a.com/#{index}", "www.b.com/#{index}"]] })
+    end
+
+    it "reads the version" do
+      expect(in_ractor { |extract| extract::VERSION }).to eq described_class::VERSION
     end
   end
 
