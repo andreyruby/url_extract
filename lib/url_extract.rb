@@ -13,23 +13,6 @@ require_relative "url_extract/version"
 #
 # The URLs are raw: each URL as the text writes it, at each place, so a URL can come more than one time.
 # `UrlExtract.scan` describes the options, and `UrlExtract::Match` describes a match.
-#
-# The text is a plain text: the extractor reads no tag. In HTML it finds a URL that starts with a scheme,
-# also in an attribute, and it does not find a relative URL, such as `href="/path"`.
-#
-# A URL holds the characters of RFC 3986, and each character that is not ASCII and not a space,
-# as the URL Standard of browsers does. The URL ends before the first other character.
-# The matches are in their order in the text, and they do not overlap.
-#
-# The extractor reads UTF-8. A text in another encoding, such as Windows-1251 or Shift_JIS, first loads
-# `url_extract/encodings`, which reads a UTF-8 copy of the text. A text of ASCII characters only needs no copy.
-#
-# The time is linear in the length of the text. The class builds the rules of the default options one time,
-# so a new extractor for each text costs little. An extractor with other options builds its rules,
-# which costs a few microseconds.
-#
-# The class and each extractor are thread-safe, and each Ractor can use the class: the rules are frozen,
-# and each call of `each` reads the text with a scanner of its own.
 class UrlExtract
   include Enumerable
 
