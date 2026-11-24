@@ -123,8 +123,6 @@ UrlExtract.scan("https://example.com/\xFF", on_encoding_error: :raise)
 # [hint] Provide a valid UTF-8 string
 ```
 
-A wrong option raises `ArgumentError`, and a text that is not a string raises `TypeError`, each with a hint.
-
 ## Corner cases
 
 ```ruby
