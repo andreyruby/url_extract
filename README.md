@@ -114,8 +114,8 @@ UrlExtract.scan("https://example.com/\xFF", on_encoding_error: :raise)
 
 ## Raised errors
 
-A text that can not be read as UTF-8 raises nothing: it gives no match, and a warning.
-`on_encoding_error: :raise` raises `UrlExtract::EncodingError`, an `ArgumentError`:
+A text that can not be read as UTF-8 gives no match, and a warning. To get an error instead,
+set `on_encoding_error: :raise`:
 
 ```ruby
 UrlExtract.scan("https://example.com/\xFF", on_encoding_error: :raise)
