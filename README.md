@@ -51,20 +51,21 @@ puts text
 ## Options
 
 The defaults are a great start: try them first, and change an option only when a text needs it.
-The options below are the defaults, so this call is the same as `UrlExtract.scan(text)`:
 
 ```ruby
-text = "See https://example.com/x"
-UrlExtract.scan(
-  text,
-  prefixes: %w[https:// http://],
-  max_bytesize: 8000,
-  trim: %w[? ! . , : ; * _ ~],
-  trim_html_entities: true,
-  trim_brackets: true,
-  on_encoding_error: :warn
-).map(&:url)
-# => ["https://example.com/x"]
+default_options = {
+  prefixes: %w[https:// http://],  # what starts a URL
+  max_bytesize: 8000,              # the largest URL, in bytes
+  trim: %w[? ! . , : ; * _ ~],     # the strings to remove from the end of a URL
+  trim_html_entities: true,        # remove an HTML entity from the end of a URL
+  trim_brackets: true,             # remove a bracket with no partner from the end of a URL
+  on_encoding_error: :warn         # a text not readable as UTF-8 gives no match, and a warning
+}
+
+UrlExtract.scan(text)
+
+# same as
+UrlExtract.scan(text, **default_options)
 ```
 
 Each option, with examples:
