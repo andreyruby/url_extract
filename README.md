@@ -184,6 +184,13 @@ UrlExtract.scan("https://example.com/\xFF").to_a
 # => []
 ```
 
+## Security
+
+The gem finds URLs and does not check where they lead. Before your server fetches a URL from untrusted
+user-generated text, protect it from [SSRF](https://owasp.org/www-community/attacks/Server_Side_Request_Forgery):
+a URL can lead to `localhost`, a private network, or a cloud metadata address. Check the IP address that the host
+resolves to, on each redirect too, for example with the [ssrf_filter](https://github.com/arkadiyt/ssrf_filter) gem.
+
 ## Development
 
 Run `bin/setup` to install the dependencies, and `bundle exec rake` to run the specs and Standard.
