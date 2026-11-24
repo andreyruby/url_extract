@@ -185,10 +185,6 @@ UrlExtract.scan("https://example.com https://example.org https://example.net").f
 # A text in another encoding: the range in that text
 UrlExtract.scan("Привет https://example.com/путь".encode(Encoding::Windows_1251)).first.range
 # => 7...31
-
-# A text with an invalid byte: no match, and a warning
-UrlExtract.scan("https://example.com/\xFF").to_a
-# => []
 ```
 
 ## Security
