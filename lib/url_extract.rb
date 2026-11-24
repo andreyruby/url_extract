@@ -121,15 +121,6 @@ class UrlExtract
   # # warning: url_extract: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 26)
   # UrlExtract.scan("See https://example.com/x \xFF", on_encoding_error: :skip).to_a # => []
   # ```
-  #
-  # A wrong option raises `ArgumentError`, and a text that is not a string raises `TypeError`: they are bugs
-  # of the calling code. The second line of each message is a hint of what to provide:
-  #
-  # ```ruby
-  # UrlExtract.scan("See https://example.com/x", trim: ".")
-  # # ArgumentError: Invalid value for trim: "." provided
-  # # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
-  # ```
   def self.scan(text, **)
     new(text, **)
   end
