@@ -114,7 +114,15 @@ UrlExtract.scan("https://example.com/\xFF", on_encoding_error: :raise)
 
 ## Raised errors
 
-A text that can not be read as UTF-8 gives no match, and a warning.
+A text that can not be read as UTF-8 gives no match, and a warning:
+
+```ruby
+UrlExtract.scan("https://example.com/\xFF").to_a
+# => []
+# warning: url_extract: Invalid text: can not be read as UTF-8 (encoding UTF-8, index 20)
+# [hint] Provide a valid UTF-8 string
+```
+
 To get an error instead, set `on_encoding_error: :raise`:
 
 ```ruby
