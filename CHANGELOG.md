@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [Unreleased]
+## [0.1.1] - 2026-11-26
 
 - The default `trim` list removes the closing quotes `'`, `’`, `”`, `»` and `›` from the end of a URL.
   A quote inside a URL stays, as in `https://en.wikipedia.org/wiki/Hawai'i`.
