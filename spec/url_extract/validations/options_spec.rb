@@ -69,8 +69,9 @@ RSpec.describe UrlExtract::Validations::Options do
 
     context "with trim" do
       it "raises an error for a value that is no array" do
-        expect(error(trim: ".")).to eq "Invalid value for trim: \".\" provided\n" \
-          '[hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]'
+        hint = %([hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~", "'", "’", "”", "»", "›"])
+
+        expect(error(trim: ".")).to eq "Invalid value for trim: \".\" provided\n#{hint}"
       end
 
       it "raises an error for a string that is no string, or an empty string" do

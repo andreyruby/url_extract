@@ -37,9 +37,9 @@ class UrlExtract
     # RFC 9110 recommends that HTTP software supports a URL of at least 8000 bytes:
     # https://www.rfc-editor.org/rfc/rfc9110#section-4.1
     max_bytesize: 8000,
-    # The list of the "Autolinks (extension)" part of the GitHub Flavored Markdown Spec, with `;`:
+    # The list of the "Autolinks (extension)" part of the GitHub Flavored Markdown Spec, with `;` and the closing quotes:
     # https://github.github.com/gfm/#autolinks-extension-
-    trim: %w[? ! . , : ; * _ ~].freeze,
+    trim: %w[? ! . , : ; * _ ~ ' ’ ” » ›].freeze,
     trim_html_entities: true,
     trim_brackets: true,
     on_encoding_error: :warn
@@ -87,9 +87,11 @@ class UrlExtract
   # UrlExtract.scan(text, max_bytesize: nil).map(&:url) # => ["https://example.com/x", "https://example.com/very/long/path"]
   # ```
   #
-  # With `trim:`, the strings to remove from the end of a URL. `[]` removes nothing:
+  # With `trim:`, the strings to remove from the end of a URL. The default list holds punctuation and closing
+  # quotes, and `[]` removes nothing:
   #
   # ```ruby
+  # UrlExtract.scan("See 'https://example.com/x'").map(&:url)                       # => ["https://example.com/x"]
   # UrlExtract.scan("See https://example.com/x.", trim: []).map(&:url)              # => ["https://example.com/x."]
   # UrlExtract.scan("See https://example.com/x...»", trim: ["...", "»"]).map(&:url) # => ["https://example.com/x"]
   # ```

@@ -7,7 +7,7 @@ class UrlExtract
     #
     #   UrlExtract.scan(text, trim: ".")
     #   # ArgumentError: Invalid value for trim: "." provided
-    #   # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
+    #   # [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~", "'", "’", "”", "»", "›"]
     class Options # :nodoc: all
       ON_ENCODING_ERROR = %i[warn skip raise].freeze
       # The private method that checks each option: `check_` and the name of the option.
