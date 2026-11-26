@@ -25,10 +25,18 @@ RSpec.describe UrlExtract::Trimming::Trim do
   end
 
   context "with a character that the list does not hold at the end" do
-    let(:url) { %(http://a.com/x') }
+    let(:url) { "http://a.com/x$" }
 
     it "returns the URL" do
       expect(subject).to eq url
+    end
+  end
+
+  context "with closing quotes at the end" do
+    let(:url) { "http://a.com/it's'’”»›." }
+
+    it "removes them, and keeps a quote inside the URL" do
+      expect(subject).to eq "http://a.com/it's"
     end
   end
 

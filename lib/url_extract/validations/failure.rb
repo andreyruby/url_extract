@@ -6,7 +6,7 @@ class UrlExtract
     # and a short hint of what to provide.
     #
     #   Invalid value for trim: "." provided
-    #   [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~"]
+    #   [hint] Provide array of strings like ["?", "!", ".", ",", ":", ";", "*", "_", "~", "'", "’", "”", "»", "›"]
     class Failure # :nodoc: all
       # The longest part of a wrong value that an error shows. The value can be a long text, given by mistake.
       MAX_SHOWN_SIZE = 60

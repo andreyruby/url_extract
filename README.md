@@ -54,12 +54,12 @@ The defaults are a great start: try them first, and change an option only when a
 
 ```ruby
 default_options = {
-  prefixes: %w[https:// http://],  # what starts a URL
-  max_bytesize: 8000,              # the largest URL, in bytes
-  trim: %w[? ! . , : ; * _ ~],     # the strings to remove from the end of a URL
-  trim_html_entities: true,        # remove an HTML entity from the end of a URL
-  trim_brackets: true,             # remove a bracket with no partner from the end of a URL
-  on_encoding_error: :warn         # a text not readable as UTF-8 gives no match, and a warning
+  prefixes: %w[https:// http://],         # what starts a URL
+  max_bytesize: 8000,                     # the largest URL, in bytes
+  trim: %w[? ! . , : ; * _ ~ ' ’ ” » ›],  # the strings to remove from the end of a URL
+  trim_html_entities: true,               # remove an HTML entity from the end of a URL
+  trim_brackets: true,                    # remove a bracket with no partner from the end of a URL
+  on_encoding_error: :warn                # a text not readable as UTF-8 gives no match, and a warning
 }
 
 UrlExtract.scan(text)
@@ -141,6 +141,10 @@ UrlExtract.scan("Is it https://example.com/x?!").map(&:url)
 # Brackets around a URL, and the URL's own brackets
 UrlExtract.scan("(See https://en.wikipedia.org/wiki/Ruby_(programming_language))").map(&:url)
 # => ["https://en.wikipedia.org/wiki/Ruby_(programming_language)"]
+
+# Quotes around a URL, and the URL's own quote
+UrlExtract.scan("See 'https://example.com/x' and «https://en.wikipedia.org/wiki/Hawai'i»").map(&:url)
+# => ["https://example.com/x", "https://en.wikipedia.org/wiki/Hawai'i"]
 
 # An HTML entity around a URL
 UrlExtract.scan("&quot;https://example.com/x&quot;").map(&:url)
