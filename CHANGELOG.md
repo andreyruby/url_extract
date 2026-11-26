@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [0.1.0] - 2026-11-20
+## [0.1.0] - 2026-11-26
 
 - Initial release: `UrlExtract.scan` (or `UrlExtract.(text)`) and `UrlExtract.new` find each URL
   in a plain text, with its position. They trim punctuation, keep only paired brackets, and read non-ASCII,
